@@ -165,7 +165,7 @@ export default function App() {
       <MachineCompareModal
         isOpen={isCompareOpen}
         selectedIds={compareIds}
-        onToggleMachine={handleToggleCompare}
+        onSetSelectedIds={setCompareIds}
         onClose={() => setIsCompareOpen(false)}
         onAddToCart={handleAddComparedMachineToCart}
         onOpenSwarovskiPdp={navigateToSwarovskiPdp}

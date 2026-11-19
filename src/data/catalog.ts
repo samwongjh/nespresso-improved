@@ -171,7 +171,7 @@ export const STOREFRONT_CATALOG: CatalogItem[] = [
     compareAtSgd: 345,
     bundleProfile: 'first-timers',
     bundleProfileLabel: 'First Timers · New to Coffee',
-    tag: 'First Timers · Save SGD 57',
+    tag: 'Flash Deal · First Timers',
     shortDesc: 'Effortless barcode-guided brewing with mild, approachable blends curated for newcomers to home espresso.',
     image: IMAGES.vertuoMachine,
     bundleIncludes: [
@@ -190,7 +190,7 @@ export const STOREFRONT_CATALOG: CatalogItem[] = [
     compareAtSgd: 285,
     bundleProfile: 'first-timers',
     bundleProfileLabel: 'First Timers · New to Coffee',
-    tag: 'First Timers · Save SGD 47',
+    tag: 'Flash Deal · First Timers',
     shortDesc: 'Compact 19-bar footprint paired with smooth light-roast sleeves so beginners can dial in café pours immediately.',
     image: IMAGES.originalCapsules,
     bundleIncludes: [
@@ -209,7 +209,7 @@ export const STOREFRONT_CATALOG: CatalogItem[] = [
     compareAtSgd: 428,
     bundleProfile: 'casual-drinkers',
     bundleProfileLabel: 'Casual Drinkers',
-    tag: 'Casual Drinkers · Save SGD 70',
+    tag: 'Flash Deal · Casual Drinkers',
     shortDesc: 'Built for daily flat whites, iced lattes, and flavoured mugs with silky one-touch milk micro-foam.',
     image: IMAGES.aeroccinoAccessories,
     bundleIncludes: [
@@ -228,7 +228,7 @@ export const STOREFRONT_CATALOG: CatalogItem[] = [
     compareAtSgd: 412,
     bundleProfile: 'casual-drinkers',
     bundleProfileLabel: 'Casual Drinkers',
-    tag: 'Casual Drinkers · Save SGD 64',
+    tag: 'Flash Deal · Casual Drinkers',
     shortDesc: 'Balanced everyday bundle combining elongated Lungo pours with hot or cold frothed milk in under a minute.',
     image: IMAGES.aeroccinoAccessories,
     bundleIncludes: [
@@ -247,7 +247,7 @@ export const STOREFRONT_CATALOG: CatalogItem[] = [
     compareAtSgd: 524,
     bundleProfile: 'connoisseurs',
     bundleProfileLabel: 'Coffee Connoisseurs',
-    tag: 'Coffee Connoisseurs · Save SGD 76',
+    tag: 'Flash Deal · Coffee Connoisseurs',
     shortDesc: 'High-intensity Italian roasts and single-origin Arabicas crafted for purists seeking crema and complexity.',
     image: IMAGES.originalCapsules,
     bundleIncludes: [
@@ -266,7 +266,7 @@ export const STOREFRONT_CATALOG: CatalogItem[] = [
     compareAtSgd: 609,
     bundleProfile: 'connoisseurs',
     bundleProfileLabel: 'Coffee Connoisseurs',
-    tag: 'Coffee Connoisseurs · Save SGD 110',
+    tag: 'Flash Deal · Coffee Connoisseurs',
     shortDesc: 'CitiZ Platinum Crystal Edition paired with crystal-embellished Travel Mug, PIXIE Cups, and 62-facet Ornament.',
     image: IMAGES.swarovskiHero,
     isSwarovskiPdp: true,
@@ -493,6 +493,7 @@ export interface MachineComparisonSpec {
   name: string;
   line: 'Original' | 'Vertuo';
   priceSgd: number;
+  compareAtSgd?: number;
   image: string;
   isSwarovskiPdp?: boolean;
   extraction: string;
@@ -511,6 +512,7 @@ export const MACHINE_COMPARISON_SPECS: MachineComparisonSpec[] = [
     name: 'CitiZ Platinum × Swarovski',
     line: 'Original',
     priceSgd: 429,
+    compareAtSgd: 469,
     image: IMAGES.swarovskiMachine,
     isSwarovskiPdp: true,
     extraction: '19-bar high-pressure pump',
@@ -563,4 +565,9 @@ export const SG_BOUTIQUES = [
 
 export function formatSgd(amount: number): string {
   return `SGD ${amount.toFixed(2)}`;
+}
+
+export function getSavingsPercent(priceSgd: number, compareAtSgd?: number): number | null {
+  if (!compareAtSgd || compareAtSgd <= priceSgd) return null;
+  return Math.round(((compareAtSgd - priceSgd) / compareAtSgd) * 100);
 }

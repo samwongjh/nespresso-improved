@@ -317,9 +317,9 @@ export function BagDrawer({
                             key={line}
                             type="button"
                             onClick={() => setCapsuleTab(line)}
-                            className={`px-3 py-1 text-[11px] font-semibold rounded-sm transition-colors cursor-pointer ${
+                            className={`px-3 py-1.5 text-xs font-medium rounded-sm transition-colors cursor-pointer ${
                               capsuleTab === line
-                                ? 'bg-[#FFFFFF] text-[#1B1918] shadow-xs'
+                                ? 'bg-[#FFFFFF] text-[#1B1918] font-semibold shadow-xs'
                                 : 'text-[#57524E] hover:text-[#1B1918]'
                             }`}
                           >
@@ -340,14 +340,14 @@ export function BagDrawer({
                                 <div className="text-xs font-semibold text-[#1B1918] truncate">
                                   {sleeve.name}
                                 </div>
-                                <div className="text-[11px] text-[#6B655F] truncate">
+                                <div className="text-xs text-[#6B655F] truncate">
                                   {sleeve.notes} · <span className="tabular-nums font-medium text-[#1B1918]">{formatSgd(sleeve.priceSgd)}</span>
                                 </div>
                               </div>
                               <button
                                 type="button"
                                 onClick={() => handleAddCompatibleCapsule(sleeve)}
-                                className={`px-2.5 py-1.5 text-[11px] font-semibold uppercase tracking-wider rounded-sm transition-colors shrink-0 cursor-pointer inline-flex items-center gap-1 ${
+                                className={`px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.12em] rounded-sm transition-colors shrink-0 cursor-pointer inline-flex items-center gap-1 ${
                                   isAdded
                                     ? 'bg-[#2C4C3E] text-white'
                                     : 'bg-[#FAF9F6] border border-[#DDD8D0] hover:border-[#1B1918] text-[#1B1918]'
@@ -356,13 +356,10 @@ export function BagDrawer({
                                 {isAdded ? (
                                   <>
                                     <Check className="w-3 h-3" />
-                                    <span>Added</span>
+                                    <span>ADDED</span>
                                   </>
                                 ) : (
-                                  <>
-                                    <Plus className="w-3 h-3" />
-                                    <span>Add</span>
-                                  </>
+                                  <span>ADD TO CART</span>
                                 )}
                               </button>
                             </div>

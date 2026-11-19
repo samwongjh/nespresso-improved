@@ -8,6 +8,7 @@ import {
   Sparkles,
   Truck,
   Recycle,
+  Zap,
 } from 'lucide-react';
 import {
   BundleProfile,
@@ -16,6 +17,7 @@ import {
   ProductCategory,
   STOREFRONT_CATALOG,
   formatSgd,
+  getSavingsPercent,
 } from '../data/catalog';
 import { ResilientImage } from './ResilientImage';
 
@@ -159,7 +161,7 @@ export function StorefrontHome({
                     onChangeCategory('bundles');
                     document.getElementById('catalog')?.scrollIntoView({ behavior: 'smooth' });
                   }}
-                  className="inline-flex items-center gap-2 px-5 py-3.5 border border-white/25 hover:border-white/60 text-[#FAF9F6] text-xs font-medium tracking-[0.1em] uppercase rounded-sm transition-colors min-h-[44px]"
+                  className="inline-flex items-center gap-2 px-5 py-3.5 border border-white/25 hover:border-white/60 text-[#FAF9F6] text-xs font-semibold tracking-[0.12em] uppercase rounded-sm transition-colors min-h-[44px]"
                 >
                   Explore Bundle Sets
                 </a>
@@ -258,20 +260,52 @@ export function StorefrontHome({
           </div>
         </div>
 
+        {/* Flash Deal Notification for Bundle Sets */}
+        <div
+          role="region"
+          aria-label="Bundle Sets Flash Deal Notification"
+          className="mt-6 bg-[#1B1918] text-[#FAF9F6] border border-[#2D2A28] rounded-sm px-5 py-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-3"
+        >
+          <div className="flex items-start sm:items-center gap-3">
+            <Zap className="w-4 h-4 text-[#C9A97E] shrink-0 mt-0.5 sm:mt-0" />
+            <p className="text-xs leading-relaxed">
+              <span className="font-semibold uppercase tracking-[0.12em] text-[#C9A97E]">
+                Flash Deal
+              </span>
+              <span className="mx-2 text-white/40" aria-hidden="true">
+                ·
+              </span>
+              <span>
+                Limited-time savings up to 18% off curated Bundle Sets for First Timers, Casual
+                Drinkers &amp; Coffee Connoisseurs — complimentary Singapore delivery included.
+              </span>
+            </p>
+          </div>
+          {activeCategory !== 'bundles' && (
+            <button
+              type="button"
+              onClick={() => onChangeCategory('bundles')}
+              className="text-xs font-semibold uppercase tracking-[0.12em] text-[#C9A97E] hover:text-white transition-colors whitespace-nowrap shrink-0 cursor-pointer text-left sm:text-right"
+            >
+              View Bundle Sets
+            </button>
+          )}
+        </div>
+
         {/* Machine Comparison Quick Action Bar */}
         {(activeCategory === 'machines' || activeCategory === 'all') && (
           <div className="pt-6 flex flex-wrap items-center justify-between gap-4">
             <p className="text-xs text-[#57524E]">
               {compareIds.length > 0
                 ? `${compareIds.length} machine${compareIds.length > 1 ? 's' : ''} selected for comparison`
-                : 'Select machines below to compare specifications side by side, or compare all models directly.'}
+                : 'Check "Select to Compare" on any machine below, or compare all models directly.'}
             </p>
             <div className="flex items-center gap-3">
               {compareIds.length > 0 && (
                 <button
                   type="button"
                   onClick={onClearCompare}
-                  className="text-xs font-medium text-[#6B655F] hover:text-[#1B1918] transition-colors cursor-pointer"
+                  className="text-xs font-semibold uppercase tracking-[0.12em] text-[#6B655F] hover:text-[#1B1918] transition-colors cursor-pointer"
                 >
                   Clear Selection
                 </button>
@@ -279,13 +313,13 @@ export function StorefrontHome({
               <button
                 type="button"
                 onClick={onOpenCompare}
-                className="inline-flex items-center gap-2 px-4 py-2 bg-[#FFFFFF] border border-[#DDD8D0] hover:border-[#1B1918] text-xs font-semibold text-[#1B1918] rounded-sm transition-colors cursor-pointer whitespace-nowrap"
+                className="inline-flex items-center gap-2 px-4 py-2 bg-[#FFFFFF] border border-[#DDD8D0] hover:border-[#1B1918] text-xs font-semibold uppercase tracking-[0.12em] text-[#1B1918] rounded-sm transition-colors cursor-pointer whitespace-nowrap"
               >
                 <GitCompareArrows className="w-3.5 h-3.5 text-[#9E7B4F]" />
                 <span>
-                  {compareIds.length >= 2
-                    ? `Compare Selected (${compareIds.length})`
-                    : 'Compare Machines'}
+                  {compareIds.length > 0
+                    ? 'Compared Selected Machines'
+                    : 'Compare All Machines'}
                 </span>
               </button>
             </div>
@@ -345,6 +379,7 @@ export function StorefrontHome({
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 pt-10">
             {filteredCatalog.map((item) => {
               const isAdded = justAddedId === item.id;
+              const savingsPct = getSavingsPercent(item.priceSgd, item.compareAtSgd);
               return (
                 <article
                   key={item.id}
@@ -369,14 +404,16 @@ export function StorefrontHome({
 
                     <div className="p-6 space-y-3">
                       <div className="flex items-center justify-between gap-2 text-xs text-[#7A746E]">
-                        <span className="uppercase tracking-[0.1em] font-medium">
+                        <span className="uppercase tracking-[0.12em] font-medium">
                           {item.line} Line
                         </span>
                         {item.tag && (
-                          <span className="text-[#9E7B4F] font-medium">{item.tag}</span>
+                          <span className="text-[#9E7B4F] font-semibold uppercase tracking-[0.08em]">
+                            {item.tag}
+                          </span>
                         )}
                         {!item.tag && item.intensity !== undefined && (
-                          <span className="tabular-nums">Intensity {item.intensity}</span>
+                          <span className="tabular-nums font-medium">Intensity {item.intensity}</span>
                         )}
                       </div>
 
@@ -416,10 +453,24 @@ export function StorefrontHome({
                         <div className="text-xs text-[#7A746E] pt-1">{item.cupSizes}</div>
                       )}
                     </div>
+
+                    {item.category === 'machines' && (
+                      <div className="px-6 pb-3">
+                        <label className="inline-flex items-center gap-2 text-xs font-medium text-[#4A4642] hover:text-[#1B1918] cursor-pointer select-none">
+                          <input
+                            type="checkbox"
+                            checked={compareIds.includes(item.id)}
+                            onChange={() => onToggleCompare(item.id)}
+                            className="w-4 h-4 rounded-xs border-[#C7C0B6] accent-[#9E7B4F] cursor-pointer"
+                          />
+                          <span>Select to Compare</span>
+                        </label>
+                      </div>
+                    )}
                   </div>
 
-                  <div className="px-6 pb-6 pt-4 border-t border-[#F0EDE7] flex items-center justify-between gap-4">
-                    <div className="flex items-baseline gap-2">
+                  <div className="px-6 pb-6 pt-4 border-t border-[#F0EDE7] flex items-center justify-between gap-3">
+                    <div className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5">
                       <span className="text-[15px] font-semibold text-[#1B1918] tabular-nums">
                         {formatSgd(item.priceSgd)}
                       </span>
@@ -428,37 +479,27 @@ export function StorefrontHome({
                           {formatSgd(item.compareAtSgd)}
                         </span>
                       )}
+                      {savingsPct !== null && (
+                        <span className="text-xs font-semibold text-[#9E7B4F] tabular-nums">
+                          Save {savingsPct}%
+                        </span>
+                      )}
                     </div>
 
-                    <div className="flex items-center gap-2">
-                      {item.category === 'machines' && (
-                        <button
-                          type="button"
-                          onClick={() => onToggleCompare(item.id)}
-                          aria-pressed={compareIds.includes(item.id)}
-                          className={`px-3 py-2 text-xs font-medium rounded-sm border transition-colors whitespace-nowrap shrink-0 cursor-pointer min-h-[38px] ${
-                            compareIds.includes(item.id)
-                              ? 'bg-[#F2EFE9] border-[#9E7B4F] text-[#1B1918]'
-                              : 'bg-[#FFFFFF] border-[#DDD8D0] hover:border-[#1B1918] text-[#57524E]'
-                          }`}
-                        >
-                          {compareIds.includes(item.id) ? 'Comparing' : 'Compare'}
-                        </button>
-                      )}
-
+                    <div className="flex items-center gap-2 shrink-0">
                       {item.isSwarovskiPdp && item.category === 'bundles' ? (
                         <button
                           type="button"
                           onClick={onOpenSwarovskiPdp}
-                          className="px-4 py-2 bg-[#1B1918] hover:bg-[#9E7B4F] text-[#FAF9F6] text-xs font-semibold uppercase tracking-wider rounded-sm transition-colors whitespace-nowrap shrink-0 cursor-pointer min-h-[38px]"
+                          className="px-4 py-2 bg-[#1B1918] hover:bg-[#9E7B4F] text-[#FAF9F6] text-xs font-semibold uppercase tracking-[0.12em] rounded-sm transition-colors whitespace-nowrap shrink-0 cursor-pointer min-h-[38px]"
                         >
-                          View Bundle
+                          VIEW BUNDLE
                         </button>
                       ) : (
                         <button
                           type="button"
                           onClick={() => handleQuickAdd(item)}
-                          className={`px-4 py-2 text-xs font-semibold uppercase tracking-wider rounded-sm transition-colors whitespace-nowrap shrink-0 cursor-pointer min-h-[38px] inline-flex items-center gap-1.5 ${
+                          className={`px-4 py-2 text-xs font-semibold uppercase tracking-[0.12em] rounded-sm transition-colors whitespace-nowrap shrink-0 cursor-pointer min-h-[38px] inline-flex items-center gap-1.5 ${
                             isAdded
                               ? 'bg-[#2C4C3E] text-white'
                               : 'bg-[#1B1918] hover:bg-[#332F2D] text-[#FAF9F6]'
@@ -467,10 +508,10 @@ export function StorefrontHome({
                           {isAdded ? (
                             <>
                               <Check className="w-3.5 h-3.5" />
-                              <span>Added</span>
+                              <span>ADDED</span>
                             </>
                           ) : (
-                            <span>{item.category === 'bundles' ? 'Add Bundle' : 'Add to Cart'}</span>
+                            <span>ADD TO CART</span>
                           )}
                         </button>
                       )}
@@ -488,7 +529,7 @@ export function StorefrontHome({
         <div className="max-w-[1320px] mx-auto px-4 sm:px-8 py-16 lg:py-20 space-y-12">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-center">
             <div className="lg:col-span-6 space-y-6">
-              <div className="text-xs tracking-[0.14em] uppercase text-[#7A746E]">
+              <div className="text-xs font-medium tracking-[0.14em] uppercase text-[#7A746E]">
                 Two Precision Coffee Systems
               </div>
               <h2 className="font-serif text-3xl sm:text-4xl font-medium text-[#1B1918] [text-wrap:balance]">
@@ -499,9 +540,9 @@ export function StorefrontHome({
                 <button
                   type="button"
                   onClick={() => setSelectedSystemTab('original')}
-                  className={`px-4 py-2 text-xs font-semibold uppercase tracking-wider rounded-sm transition-colors cursor-pointer ${
+                  className={`px-4 py-2 text-xs font-medium rounded-sm transition-colors cursor-pointer ${
                     selectedSystemTab === 'original'
-                      ? 'bg-[#FFFFFF] text-[#1B1918] shadow-xs'
+                      ? 'bg-[#FFFFFF] text-[#1B1918] font-semibold shadow-xs'
                       : 'text-[#57524E] hover:text-[#1B1918]'
                   }`}
                 >
@@ -510,9 +551,9 @@ export function StorefrontHome({
                 <button
                   type="button"
                   onClick={() => setSelectedSystemTab('vertuo')}
-                  className={`px-4 py-2 text-xs font-semibold uppercase tracking-wider rounded-sm transition-colors cursor-pointer ${
+                  className={`px-4 py-2 text-xs font-medium rounded-sm transition-colors cursor-pointer ${
                     selectedSystemTab === 'vertuo'
-                      ? 'bg-[#FFFFFF] text-[#1B1918] shadow-xs'
+                      ? 'bg-[#FFFFFF] text-[#1B1918] font-semibold shadow-xs'
                       : 'text-[#57524E] hover:text-[#1B1918]'
                   }`}
                 >

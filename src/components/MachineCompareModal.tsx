@@ -3,13 +3,14 @@ import {
   MACHINE_COMPARISON_SPECS,
   MachineComparisonSpec,
   formatSgd,
+  getSavingsPercent,
 } from '../data/catalog';
 import { ResilientImage } from './ResilientImage';
 
 interface MachineCompareModalProps {
   isOpen: boolean;
   selectedIds: string[];
-  onToggleMachine: (id: string) => void;
+  onSetSelectedIds: (ids: string[]) => void;
   onClose: () => void;
   onAddToCart: (machine: MachineComparisonSpec) => void;
   onOpenSwarovskiPdp: () => void;
@@ -34,17 +35,30 @@ const SPEC_ROWS: {
 export function MachineCompareModal({
   isOpen,
   selectedIds,
-  onToggleMachine,
+  onSetSelectedIds,
   onClose,
   onAddToCart,
   onOpenSwarovskiPdp,
 }: MachineCompareModalProps) {
   if (!isOpen) return null;
 
-  const comparedMachines =
-    selectedIds.length >= 2
-      ? MACHINE_COMPARISON_SPECS.filter((m) => selectedIds.includes(m.id))
-      : MACHINE_COMPARISON_SPECS;
+  const isComparingAll = selectedIds.length === 0;
+  const comparedMachines = isComparingAll
+    ? MACHINE_COMPARISON_SPECS
+    : MACHINE_COMPARISON_SPECS.filter((m) => selectedIds.includes(m.id));
+
+  const handleToggleChip = (id: string) => {
+    if (isComparingAll) {
+      onSetSelectedIds(MACHINE_COMPARISON_SPECS.filter((m) => m.id !== id).map((m) => m.id));
+      return;
+    }
+    if (selectedIds.includes(id)) {
+      if (selectedIds.length === 1) return; // keep at least 1 machine visible
+      onSetSelectedIds(selectedIds.filter((item) => item !== id));
+    } else {
+      onSetSelectedIds([...selectedIds, id]);
+    }
+  };
 
   return (
     <div
@@ -63,7 +77,7 @@ export function MachineCompareModal({
               Nespresso Singapore Machine Guide
             </div>
             <h2 className="font-serif text-2xl sm:text-3xl font-medium text-[#1B1918] mt-0.5">
-              Compare Coffee Machines
+              {isComparingAll ? 'Compare All Machines' : 'Compared Selected Machines'}
             </h2>
           </div>
 
@@ -75,7 +89,7 @@ export function MachineCompareModal({
                   <button
                     key={machine.id}
                     type="button"
-                    onClick={() => onToggleMachine(machine.id)}
+                    onClick={() => handleToggleChip(machine.id)}
                     className={`inline-flex items-center gap-1.5 px-3 py-1.5 text-xs rounded-sm border transition-colors cursor-pointer whitespace-nowrap ${
                       active
                         ? 'bg-[#1B1918] text-[#FAF9F6] border-[#1B1918]'
@@ -109,55 +123,70 @@ export function MachineCompareModal({
                   <th className="w-48 p-5 text-xs font-semibold uppercase tracking-wider text-[#7A746E] bg-[#FAF9F6]">
                     Model Overview
                   </th>
-                  {comparedMachines.map((machine) => (
-                    <th key={machine.id} className="p-5 font-normal border-l border-[#F0EDE7]">
-                      <div className="space-y-3">
-                        <div className="aspect-[4/3] w-full overflow-hidden rounded-sm bg-[#F2EFE9]">
-                          <ResilientImage
-                            src={machine.image}
-                            alt={machine.name}
-                            className="w-full h-full object-cover"
-                            fallbackTitle={machine.name}
-                          />
-                        </div>
-                        <div>
-                          <div className="text-[11px] uppercase tracking-[0.12em] text-[#9E7B4F] font-medium">
-                            {machine.line} Line
+                  {comparedMachines.map((machine) => {
+                    const savingsPct = getSavingsPercent(machine.priceSgd, machine.compareAtSgd);
+                    return (
+                      <th key={machine.id} className="p-5 font-normal border-l border-[#F0EDE7]">
+                        <div className="space-y-3">
+                          <div className="aspect-[4/3] w-full overflow-hidden rounded-sm bg-[#F2EFE9]">
+                            <ResilientImage
+                              src={machine.image}
+                              alt={machine.name}
+                              className="w-full h-full object-cover"
+                              fallbackTitle={machine.name}
+                            />
                           </div>
-                          <div className="text-base font-semibold text-[#1B1918] mt-0.5 leading-snug">
-                            {machine.name}
+                          <div>
+                            <div className="text-xs uppercase tracking-[0.12em] text-[#9E7B4F] font-medium">
+                              {machine.line} Line
+                            </div>
+                            <div className="text-base font-semibold text-[#1B1918] mt-0.5 leading-snug">
+                              {machine.name}
+                            </div>
+                            <div className="flex flex-wrap items-baseline gap-2 mt-1">
+                              <span className="text-[15px] font-semibold text-[#1B1918] tabular-nums">
+                                {formatSgd(machine.priceSgd)}
+                              </span>
+                              {machine.compareAtSgd && (
+                                <span className="text-xs text-[#8E8882] line-through tabular-nums">
+                                  {formatSgd(machine.compareAtSgd)}
+                                </span>
+                              )}
+                              {savingsPct !== null && (
+                                <span className="text-xs font-semibold text-[#9E7B4F] tabular-nums">
+                                  Save {savingsPct}%
+                                </span>
+                              )}
+                            </div>
                           </div>
-                          <div className="text-sm font-semibold text-[#1B1918] tabular-nums mt-1">
-                            {formatSgd(machine.priceSgd)}
-                          </div>
-                        </div>
-                        <div className="flex flex-wrap items-center gap-2 pt-1">
-                          <button
-                            type="button"
-                            onClick={() => {
-                              onAddToCart(machine);
-                              onClose();
-                            }}
-                            className="px-3.5 py-2 bg-[#1B1918] hover:bg-[#9E7B4F] text-[#FAF9F6] text-xs font-semibold uppercase tracking-wider rounded-sm transition-colors cursor-pointer whitespace-nowrap"
-                          >
-                            Add to Cart
-                          </button>
-                          {machine.isSwarovskiPdp && (
+                          <div className="flex flex-wrap items-center gap-2 pt-1">
                             <button
                               type="button"
                               onClick={() => {
+                                onAddToCart(machine);
                                 onClose();
-                                onOpenSwarovskiPdp();
                               }}
-                              className="px-3 py-2 border border-[#DDD8D0] hover:border-[#1B1918] text-[#1B1918] text-xs font-medium rounded-sm transition-colors cursor-pointer whitespace-nowrap"
+                              className="px-4 py-2 bg-[#1B1918] hover:bg-[#9E7B4F] text-[#FAF9F6] text-xs font-semibold uppercase tracking-[0.12em] rounded-sm transition-colors cursor-pointer whitespace-nowrap"
                             >
-                              View Edition
+                              ADD TO CART
                             </button>
-                          )}
+                            {machine.isSwarovskiPdp && (
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  onClose();
+                                  onOpenSwarovskiPdp();
+                                }}
+                                className="px-3.5 py-2 border border-[#DDD8D0] hover:border-[#1B1918] text-[#1B1918] text-xs font-semibold uppercase tracking-[0.12em] rounded-sm transition-colors cursor-pointer whitespace-nowrap"
+                              >
+                                View Edition
+                              </button>
+                            )}
+                          </div>
                         </div>
-                      </div>
-                    </th>
-                  ))}
+                      </th>
+                    );
+                  })}
                 </tr>
               </thead>
               <tbody className="divide-y divide-[#F0EDE7] text-xs sm:text-sm">

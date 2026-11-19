@@ -19,6 +19,7 @@ import {
   SWAROVSKI_VARIANTS,
   TECHNICAL_SPECS,
   formatSgd,
+  getSavingsPercent,
 } from '../data/catalog';
 import { ResilientImage } from './ResilientImage';
 
@@ -54,6 +55,7 @@ export function SwarovskiBundlePDP({
   const activeBrewMode = BREW_MODES.find((m) => m.id === activeBrewModeId) ?? BREW_MODES[0];
 
   const savingsSgd = selectedVariant.compareAtSgd - selectedVariant.priceSgd;
+  const savingsPct = getSavingsPercent(selectedVariant.priceSgd, selectedVariant.compareAtSgd);
 
   const handleAddBundle = () => {
     onAddToBag({
@@ -233,7 +235,7 @@ export function SwarovskiBundlePDP({
                 </span>
               </div>
               <span className="text-xs font-semibold text-[#9E7B4F] tabular-nums">
-                Save {formatSgd(savingsSgd)}
+                Save {formatSgd(savingsSgd)}{savingsPct !== null ? ` (${savingsPct}% Off)` : ''}
               </span>
             </div>
 
@@ -331,11 +333,11 @@ export function SwarovskiBundlePDP({
                 {addedToBag ? (
                   <>
                     <Check className="w-4 h-4" />
-                    <span>Added to Cart</span>
+                    <span>ADDED TO CART</span>
                   </>
                 ) : (
                   <span className="tabular-nums">
-                    Add to Cart — {formatSgd(selectedVariant.priceSgd * quantity)}
+                    ADD TO CART — {formatSgd(selectedVariant.priceSgd * quantity)}
                   </span>
                 )}
               </button>
@@ -550,13 +552,13 @@ export function SwarovskiBundlePDP({
                   <button
                     type="button"
                     onClick={() => handleAddSleeve(sleeve)}
-                    className={`px-3.5 py-2 text-xs font-semibold uppercase tracking-wider rounded-sm transition-colors shrink-0 cursor-pointer min-h-[38px] ${
+                    className={`px-3.5 py-2 text-xs font-semibold uppercase tracking-[0.12em] rounded-sm transition-colors shrink-0 cursor-pointer min-h-[38px] ${
                       isAdded
                         ? 'bg-[#2C4C3E] text-white'
                         : 'bg-[#FAF9F6] border border-[#DDD8D0] hover:border-[#1B1918] text-[#1B1918]'
                     }`}
                   >
-                    {isAdded ? 'Added' : 'Add'}
+                    {isAdded ? 'ADDED' : 'ADD TO CART'}
                   </button>
                 </div>
               );
@@ -576,9 +578,9 @@ export function SwarovskiBundlePDP({
         <button
           type="button"
           onClick={handleAddBundle}
-          className="px-5 py-2.5 bg-[#1B1918] text-[#FAF9F6] text-xs font-semibold uppercase tracking-wider rounded-sm shrink-0 min-h-[42px]"
+          className="px-5 py-2.5 bg-[#1B1918] text-[#FAF9F6] text-xs font-semibold uppercase tracking-[0.12em] rounded-sm shrink-0 min-h-[42px]"
         >
-          {addedToBag ? 'Added to Cart' : 'Add to Cart'}
+          {addedToBag ? 'ADDED TO CART' : 'ADD TO CART'}
         </button>
       </div>
     </main>
