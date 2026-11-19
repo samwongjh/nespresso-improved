@@ -109,10 +109,10 @@ export function Header({
             </button>
             <button
               type="button"
-              onClick={() => onNavigateHome('systems', 'all')}
+              onClick={() => onNavigateHome('catalog', 'bundles')}
               className="hover:text-[#1B1918] hover:underline underline-offset-4 decoration-[#9E7B4F] transition-colors whitespace-nowrap shrink-0 py-2 cursor-pointer"
             >
-              Systems
+              Bundle Sets
             </button>
           </nav>
 
@@ -155,17 +155,17 @@ export function Header({
             </button>
             <button
               type="button"
+              onClick={() => handleNavClick(() => onNavigateHome('catalog', 'bundles'))}
+              className="block w-full text-left px-3 py-3 text-sm font-medium text-[#1B1918] hover:bg-[#F1EEE8] rounded-sm"
+            >
+              Bundle Sets
+            </button>
+            <button
+              type="button"
               onClick={() => handleNavClick(onNavigatePdp)}
               className="block w-full text-left px-3 py-3 text-sm font-semibold text-[#9E7B4F] hover:bg-[#F1EEE8] rounded-sm"
             >
               Nespresso × Swarovski Shine Bundle
-            </button>
-            <button
-              type="button"
-              onClick={() => handleNavClick(() => onNavigateHome('systems', 'all'))}
-              className="block w-full text-left px-3 py-3 text-sm font-medium text-[#1B1918] hover:bg-[#F1EEE8] rounded-sm"
-            >
-              Original &amp; Vertuo Systems
             </button>
           </div>
         )}

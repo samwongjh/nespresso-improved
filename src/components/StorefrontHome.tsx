@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react';
 import { ArrowRight, Check, Search, ShieldCheck, Sparkles, Truck, Recycle } from 'lucide-react';
 import {
+  BundleProfile,
   CatalogItem,
   IMAGES,
   ProductCategory,
@@ -28,6 +29,14 @@ const FILTER_TABS: { id: ProductCategory | 'all'; label: string }[] = [
   { id: 'machines', label: 'Machines' },
   { id: 'capsules', label: 'Coffee Capsules' },
   { id: 'accessories', label: 'Accessories' },
+  { id: 'bundles', label: 'Bundle Sets' },
+];
+
+const BUNDLE_PROFILE_TABS: { id: BundleProfile | 'all'; label: string; hint: string }[] = [
+  { id: 'all', label: 'All Profiles', hint: 'Curated Singapore sets' },
+  { id: 'first-timers', label: 'First Timers', hint: 'New to coffee' },
+  { id: 'casual-drinkers', label: 'Casual Drinkers', hint: 'Daily milk & iced café' },
+  { id: 'connoisseurs', label: 'Coffee Connoisseurs', hint: 'Intense espresso & collector editions' },
 ];
 
 export function StorefrontHome({
@@ -37,27 +46,40 @@ export function StorefrontHome({
   onAddToBag,
 }: StorefrontHomeProps) {
   const [searchQuery, setSearchQuery] = useState('');
+  const [bundleProfileFilter, setBundleProfileFilter] = useState<BundleProfile | 'all'>('all');
   const [justAddedId, setJustAddedId] = useState<string | null>(null);
   const [selectedSystemTab, setSelectedSystemTab] = useState<'original' | 'vertuo'>('original');
 
   const filteredCatalog = useMemo(() => {
     return STOREFRONT_CATALOG.filter((item) => {
-      const matchesCategory = activeCategory === 'all' || item.category === activeCategory;
+      // "All Essentials" and "Machines" show individual items only; bundles live exclusively under "Bundle Sets"
+      const matchesCategory =
+        activeCategory === 'all'
+          ? item.category !== 'bundles'
+          : item.category === activeCategory;
+
+      const matchesProfile =
+        activeCategory !== 'bundles' ||
+        bundleProfileFilter === 'all' ||
+        item.bundleProfile === bundleProfileFilter;
+
       const q = searchQuery.trim().toLowerCase();
       const matchesQuery =
         !q ||
         item.name.toLowerCase().includes(q) ||
         item.shortDesc.toLowerCase().includes(q) ||
-        item.line.toLowerCase().includes(q);
-      return matchesCategory && matchesQuery;
+        item.line.toLowerCase().includes(q) ||
+        (item.bundleProfileLabel && item.bundleProfileLabel.toLowerCase().includes(q));
+
+      return matchesCategory && matchesProfile && matchesQuery;
     });
-  }, [activeCategory, searchQuery]);
+  }, [activeCategory, bundleProfileFilter, searchQuery]);
 
   const handleQuickAdd = (item: CatalogItem) => {
     onAddToBag({
       id: item.id,
       name: item.name,
-      subtitle: `${item.line} Line`,
+      subtitle: item.bundleProfileLabel ? `${item.bundleProfileLabel} · ${item.line} Line` : `${item.line} Line`,
       priceSgd: item.priceSgd,
       image: item.image,
       quantity: 1,
@@ -104,12 +126,12 @@ export function StorefrontHome({
                   href="#catalog"
                   onClick={(e) => {
                     e.preventDefault();
-                    onChangeCategory('machines');
+                    onChangeCategory('bundles');
                     document.getElementById('catalog')?.scrollIntoView({ behavior: 'smooth' });
                   }}
                   className="inline-flex items-center gap-2 px-5 py-3.5 border border-white/25 hover:border-white/60 text-[#FAF9F6] text-xs font-medium tracking-[0.1em] uppercase rounded-sm transition-colors min-h-[44px]"
                 >
-                  Compare Machines
+                  Explore Bundle Sets
                 </a>
               </div>
             </div>
@@ -145,15 +167,17 @@ export function StorefrontHome({
         </div>
       </section>
 
-      {/* Section 2: Featured Collection Grid (Machines, Capsules & Accessories) */}
+      {/* Section 2: Featured Collection Grid (Machines, Capsules, Accessories & Bundle Sets) */}
       <section id="catalog" className="max-w-[1320px] mx-auto px-4 sm:px-8 py-16 lg:py-20">
-        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 pb-8 border-b border-[#E7E4DF]">
+        <div className="flex flex-col xl:flex-row xl:items-end justify-between gap-6 pb-8 border-b border-[#E7E4DF]">
           <div className="space-y-2">
             <div className="text-xs tracking-[0.14em] uppercase text-[#7A746E]">
               Curated Singapore Collection
             </div>
             <h2 className="font-serif text-3xl sm:text-4xl font-medium text-[#1B1918] [text-wrap:balance]">
-              Machines, Grand Cru Coffee &amp; Accessories
+              {activeCategory === 'bundles'
+                ? 'Curated Bundle Sets by Coffee Ritual'
+                : 'Machines, Grand Cru Coffee & Accessories'}
             </h2>
           </div>
 
@@ -172,7 +196,12 @@ export function StorefrontHome({
                     type="button"
                     role="tab"
                     aria-selected={isActive}
-                    onClick={() => onChangeCategory(tab.id)}
+                    onClick={() => {
+                      onChangeCategory(tab.id);
+                      if (tab.id !== 'bundles') {
+                        setBundleProfileFilter('all');
+                      }
+                    }}
                     className={`px-3.5 py-2 text-xs font-medium rounded-sm transition-colors whitespace-nowrap shrink-0 cursor-pointer min-h-[36px] ${
                       isActive
                         ? 'bg-[#FFFFFF] text-[#1B1918] shadow-xs'
@@ -191,13 +220,45 @@ export function StorefrontHome({
                 type="search"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Search blends or machines"
-                aria-label="Search coffee machines, capsules, or accessories"
+                placeholder="Search blends, machines, or sets"
+                aria-label="Search coffee machines, capsules, accessories, or bundle sets"
                 className="w-full sm:w-56 pl-9 pr-3 py-2 text-xs bg-[#FFFFFF] border border-[#DDD8D0] rounded-sm text-[#1B1918] placeholder:text-[#8E8882] focus:outline-none focus:border-[#9E7B4F] min-h-[40px]"
               />
             </div>
           </div>
         </div>
+
+        {/* Drinker Profile Filter Bar (shown when Bundle Sets tab is selected) */}
+        {activeCategory === 'bundles' && (
+          <div className="pt-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div className="text-xs text-[#57524E]">
+              Tailored sets combining a machine, tasting sleeves, and glassware for every palate:
+            </div>
+            <div
+              role="group"
+              aria-label="Filter bundle sets by coffee experience"
+              className="inline-flex flex-wrap items-center gap-2"
+            >
+              {BUNDLE_PROFILE_TABS.map((profile) => {
+                const isSelected = bundleProfileFilter === profile.id;
+                return (
+                  <button
+                    key={profile.id}
+                    type="button"
+                    onClick={() => setBundleProfileFilter(profile.id)}
+                    className={`px-3.5 py-2 text-xs rounded-sm border transition-colors whitespace-nowrap shrink-0 cursor-pointer ${
+                      isSelected
+                        ? 'bg-[#1B1918] text-[#FAF9F6] border-[#1B1918] font-semibold'
+                        : 'bg-[#FFFFFF] text-[#4A4642] border-[#DDD8D0] hover:border-[#1B1918] font-medium'
+                    }`}
+                  >
+                    <span>{profile.label}</span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        )}
 
         {filteredCatalog.length === 0 ? (
           <div className="py-16 text-center space-y-3 border-b border-[#E7E4DF]">
@@ -208,6 +269,7 @@ export function StorefrontHome({
               type="button"
               onClick={() => {
                 setSearchQuery('');
+                setBundleProfileFilter('all');
                 onChangeCategory('all');
               }}
               className="text-xs font-semibold uppercase tracking-wider text-[#9E7B4F] hover:underline cursor-pointer"
@@ -272,7 +334,21 @@ export function StorefrontHome({
                         {item.shortDesc}
                       </p>
 
-                      {item.cupSizes && (
+                      {item.bundleIncludes && (
+                        <ul className="pt-2 space-y-1.5 border-t border-[#F2EFE9]">
+                          {item.bundleIncludes.map((inc) => (
+                            <li
+                              key={inc}
+                              className="flex items-start gap-2 text-xs text-[#4A4642]"
+                            >
+                              <Check className="w-3.5 h-3.5 text-[#9E7B4F] shrink-0 mt-0.5" />
+                              <span>{inc}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      )}
+
+                      {item.cupSizes && !item.bundleIncludes && (
                         <div className="text-xs text-[#7A746E] pt-1">{item.cupSizes}</div>
                       )}
                     </div>
@@ -291,7 +367,7 @@ export function StorefrontHome({
                     </div>
 
                     <div className="flex items-center gap-2">
-                      {item.isSwarovskiPdp ? (
+                      {item.isSwarovskiPdp && item.category === 'bundles' ? (
                         <button
                           type="button"
                           onClick={onOpenSwarovskiPdp}
@@ -315,7 +391,7 @@ export function StorefrontHome({
                               <span>Added</span>
                             </>
                           ) : (
-                            <span>Add to Bag</span>
+                            <span>{item.category === 'bundles' ? 'Add Bundle' : 'Add to Bag'}</span>
                           )}
                         </button>
                       )}

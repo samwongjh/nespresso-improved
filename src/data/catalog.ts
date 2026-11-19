@@ -1,4 +1,5 @@
-export type ProductCategory = 'machines' | 'capsules' | 'accessories';
+export type ProductCategory = 'machines' | 'capsules' | 'accessories' | 'bundles';
+export type BundleProfile = 'first-timers' | 'casual-drinkers' | 'connoisseurs';
 
 export interface CatalogItem {
   id: string;
@@ -14,6 +15,9 @@ export interface CatalogItem {
   isSwarovskiPdp?: boolean;
   intensity?: number;
   cupSizes?: string;
+  bundleProfile?: BundleProfile;
+  bundleProfileLabel?: string;
+  bundleIncludes?: string[];
 }
 
 export interface SwarovskiVariant {
@@ -46,19 +50,20 @@ export const IMAGES = {
 } as const;
 
 export const STOREFRONT_CATALOG: CatalogItem[] = [
+  // Individual Machines (no bundles)
   {
-    id: 'swarovski-shine-bundle',
-    slug: 'swarovski-shine-bundle',
-    name: 'Nespresso × Swarovski Shine Bundle',
+    id: 'citiz-platinum-swarovski-machine',
+    slug: 'citiz-platinum-swarovski-machine',
+    name: 'CitiZ Platinum × Swarovski (Machine Only)',
     category: 'machines',
     line: 'Original',
-    priceSgd: 499,
-    compareAtSgd: 609,
-    tag: 'Limited Holiday Edition',
-    shortDesc: 'CitiZ Platinum Crystal Edition paired with crystal-embellished Travel Mug, PIXIE Cups, and 62-facet Ornament.',
+    priceSgd: 429,
+    compareAtSgd: 469,
+    tag: 'Limited Crystal Edition',
+    shortDesc: 'Brushed stainless steel 19-bar Original machine accented with precision-cut Swarovski crystals.',
     image: IMAGES.swarovskiMachine,
     isSwarovskiPdp: true,
-    cupSizes: 'Ristretto · Espresso · Lungo · Americano',
+    cupSizes: 'Espresso · Lungo · Americano · XL',
   },
   {
     id: 'citiz-platinum-stainless',
@@ -74,16 +79,17 @@ export const STOREFRONT_CATALOG: CatalogItem[] = [
   {
     id: 'vertuo-next-matte',
     slug: 'vertuo-next-matte',
-    name: 'Vertuo Next & Aeroccino3 Bundle',
+    name: 'Vertuo Next Matte Black',
     category: 'machines',
     line: 'Vertuo',
-    priceSgd: 358,
-    compareAtSgd: 428,
-    tag: 'Complimentary Tasting Box',
-    shortDesc: 'Centrifusion extraction reading each capsule barcode for rich crema across five cup sizes up to Carafe.',
+    priceSgd: 268,
+    tag: 'Centrifusion System',
+    shortDesc: 'Standalone Centrifusion machine reading each capsule barcode for velvety crema across five cup sizes.',
     image: IMAGES.vertuoMachine,
     cupSizes: 'Espresso · Double · Gran Lungo · Mug',
   },
+
+  // Individual Coffee Capsules
   {
     id: 'ispirazione-arpeggio',
     slug: 'ispirazione-firenze-arpeggio',
@@ -109,14 +115,166 @@ export const STOREFRONT_CATALOG: CatalogItem[] = [
     cupSizes: 'Ristretto 25 ml · Espresso 40 ml',
   },
   {
+    id: 'volluto-original',
+    slug: 'volluto',
+    name: 'Volluto (10 Capsules)',
+    category: 'capsules',
+    line: 'Original',
+    priceSgd: 9.2,
+    shortDesc: 'Sweet, light-bodied South American Arabica blend offering warm cereal biscuit and fresh fruit notes.',
+    image: IMAGES.originalCapsules,
+    intensity: 4,
+    cupSizes: 'Espresso 40 ml',
+  },
+
+  // Individual Accessories
+  {
     id: 'aeroccino-4-frother',
     slug: 'aeroccino-4-milk-frother',
-    name: 'Aeroccino 4 Milk Frother & Glass Set',
+    name: 'Aeroccino 4 Milk Frother',
     category: 'accessories',
     line: 'Accessories',
-    priceSgd: 168,
+    priceSgd: 148,
     shortDesc: 'Four one-touch milk textures from airy cold foam to dense cappuccino froth, dishwasher-safe stainless jug.',
     image: IMAGES.aeroccinoAccessories,
+  },
+  {
+    id: 'swarovski-travel-mug',
+    slug: 'swarovski-travel-mug',
+    name: 'Nespresso × Swarovski Travel Mug',
+    category: 'accessories',
+    line: 'Accessories',
+    priceSgd: 68,
+    tag: 'Crystal Collar Included',
+    shortDesc: 'Double-walled insulated champagne tumbler paired with a detachable Swarovski crystal-embellished collar.',
+    image: IMAGES.swarovskiAccessories,
+  },
+  {
+    id: 'pixie-espresso-cups',
+    slug: 'pixie-espresso-lungo-cups',
+    name: 'PIXIE Stainless Cups (Pair)',
+    category: 'accessories',
+    line: 'Accessories',
+    priceSgd: 42,
+    shortDesc: 'Double-walled brushed stainless steel cups engineered to retain espresso aroma and tasting warmth.',
+    image: IMAGES.aeroccinoAccessories,
+  },
+
+  // Bundle Sets (First Timers, Casual Drinkers, Coffee Connoisseurs)
+  {
+    id: 'bundle-first-timer-discovery',
+    slug: 'vertuo-discovery-starter-bundle',
+    name: 'Vertuo Discovery Starter Set',
+    category: 'bundles',
+    line: 'Vertuo',
+    priceSgd: 288,
+    compareAtSgd: 345,
+    bundleProfile: 'first-timers',
+    bundleProfileLabel: 'First Timers · New to Coffee',
+    tag: 'First Timers · Save SGD 57',
+    shortDesc: 'Effortless barcode-guided brewing with mild, approachable blends curated for newcomers to home espresso.',
+    image: IMAGES.vertuoMachine,
+    bundleIncludes: [
+      'Vertuo Next Matte Black Machine',
+      '30 Mild & Balanced Capsules (Melozio, Solelio, Voltesso)',
+      'Double-Walled Tasting Mug & Quick-Start Guide',
+    ],
+  },
+  {
+    id: 'bundle-first-timer-essenza',
+    slug: 'essenza-mini-welcome-bundle',
+    name: 'Original Welcome Ritual Set',
+    category: 'bundles',
+    line: 'Original',
+    priceSgd: 238,
+    compareAtSgd: 285,
+    bundleProfile: 'first-timers',
+    bundleProfileLabel: 'First Timers · New to Coffee',
+    tag: 'First Timers · Save SGD 47',
+    shortDesc: 'Compact 19-bar footprint paired with smooth light-roast sleeves so beginners can dial in café pours immediately.',
+    image: IMAGES.originalCapsules,
+    bundleIncludes: [
+      'Compact Original 19-Bar Machine',
+      '30 Smooth Starter Capsules (Volluto, Cosi, Tokyo Lungo)',
+      '2× Glass Espresso Cups & Tasting Notes Card',
+    ],
+  },
+  {
+    id: 'bundle-casual-milk-ritual',
+    slug: 'everyday-cafe-milk-bundle',
+    name: 'Everyday Café & Milk Bundle',
+    category: 'bundles',
+    line: 'Vertuo',
+    priceSgd: 358,
+    compareAtSgd: 428,
+    bundleProfile: 'casual-drinkers',
+    bundleProfileLabel: 'Casual Drinkers',
+    tag: 'Casual Drinkers · Save SGD 70',
+    shortDesc: 'Built for daily flat whites, iced lattes, and flavoured mugs with silky one-touch milk micro-foam.',
+    image: IMAGES.aeroccinoAccessories,
+    bundleIncludes: [
+      'Vertuo Next Matte Black Machine',
+      'Aeroccino 3 Hot & Cold Milk Frother',
+      '30 Barista Creations Sleeves (Caramel, Vanilla, Ice Leggero)',
+    ],
+  },
+  {
+    id: 'bundle-casual-iced-lungo',
+    slug: 'morning-lungo-aeroccino-set',
+    name: 'Morning Lungo & Frother Set',
+    category: 'bundles',
+    line: 'Original',
+    priceSgd: 348,
+    compareAtSgd: 412,
+    bundleProfile: 'casual-drinkers',
+    bundleProfileLabel: 'Casual Drinkers',
+    tag: 'Casual Drinkers · Save SGD 64',
+    shortDesc: 'Balanced everyday bundle combining elongated Lungo pours with hot or cold frothed milk in under a minute.',
+    image: IMAGES.aeroccinoAccessories,
+    bundleIncludes: [
+      'CitiZ Platinum Stainless Steel Machine',
+      'Aeroccino 4 Milk Frother',
+      '30 World Explorations & Barista Creations Capsules',
+    ],
+  },
+  {
+    id: 'bundle-connoisseur-atelier',
+    slug: 'ispirazione-connoisseur-espresso-set',
+    name: 'Ispirazione Connoisseur Atelier',
+    category: 'bundles',
+    line: 'Original',
+    priceSgd: 448,
+    compareAtSgd: 524,
+    bundleProfile: 'connoisseurs',
+    bundleProfileLabel: 'Coffee Connoisseurs',
+    tag: 'Coffee Connoisseurs · Save SGD 76',
+    shortDesc: 'High-intensity Italian roasts and single-origin Arabicas crafted for purists seeking crema and complexity.',
+    image: IMAGES.originalCapsules,
+    bundleIncludes: [
+      'CitiZ Platinum Stainless Steel (19-Bar)',
+      '50 Ispirazione Italiana & Master Origins Capsules',
+      'PIXIE Double-Walled Espresso & Lungo Cups',
+    ],
+  },
+  {
+    id: 'swarovski-shine-bundle',
+    slug: 'swarovski-shine-bundle',
+    name: 'Nespresso × Swarovski Shine Bundle',
+    category: 'bundles',
+    line: 'Original',
+    priceSgd: 499,
+    compareAtSgd: 609,
+    bundleProfile: 'connoisseurs',
+    bundleProfileLabel: 'Coffee Connoisseurs',
+    tag: 'Coffee Connoisseurs · Save SGD 110',
+    shortDesc: 'CitiZ Platinum Crystal Edition paired with crystal-embellished Travel Mug, PIXIE Cups, and 62-facet Ornament.',
+    image: IMAGES.swarovskiHero,
+    isSwarovskiPdp: true,
+    bundleIncludes: [
+      'Nespresso × Swarovski CitiZ Platinum Machine',
+      'Swarovski Travel Mug & Crystal Collar Holder',
+      'PIXIE Espresso & Lungo Cups + 62-Facet Ornament',
+    ],
   },
 ];
 
