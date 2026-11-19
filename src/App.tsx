@@ -2,12 +2,15 @@ import { useEffect, useState } from 'react';
 import { BagDrawer, BagItem } from './components/BagDrawer';
 import { Footer } from './components/Footer';
 import { AppView, Header } from './components/Header';
+import { LoginModal } from './components/LoginModal';
 import { MachineCompareModal } from './components/MachineCompareModal';
 import { StorefrontHome } from './components/StorefrontHome';
 import { SwarovskiBundlePDP } from './components/SwarovskiBundlePDP';
 import { MachineComparisonSpec, ProductCategory } from './data/catalog';
+import { MemberAccount, PRESET_MEMBERS } from './data/membership';
 
 const BAG_STORAGE_KEY = 'nespresso_sg_bag_v1';
+const MEMBER_STORAGE_KEY = 'nespresso_sg_member_v1';
 
 function getInitialViewFromHash(): AppView {
   if (typeof window !== 'undefined') {
@@ -23,9 +26,21 @@ export default function App() {
   const [view, setView] = useState<AppView>(getInitialViewFromHash);
   const [activeCategory, setActiveCategory] = useState<ProductCategory | 'all'>('all');
   const [isCartOpen, setIsCartOpen] = useState(false);
+  const [isLoginOpen, setIsLoginOpen] = useState(false);
   const [isCompareOpen, setIsCompareOpen] = useState(false);
   const [compareIds, setCompareIds] = useState<string[]>([]);
   const [highlightedMachineLine, setHighlightedMachineLine] = useState<'Original' | 'Vertuo' | null>(null);
+  const [member, setMember] = useState<MemberAccount | null>(() => {
+    try {
+      const saved = window.localStorage.getItem(MEMBER_STORAGE_KEY);
+      if (saved === null) {
+        return PRESET_MEMBERS[0];
+      }
+      return JSON.parse(saved) as MemberAccount | null;
+    } catch {
+      return PRESET_MEMBERS[0];
+    }
+  });
   const [cartItems, setCartItems] = useState<BagItem[]>(() => {
     try {
       const saved = window.localStorage.getItem(BAG_STORAGE_KEY);
@@ -42,6 +57,14 @@ export default function App() {
       // Ignore storage errors in restricted environments
     }
   }, [cartItems]);
+
+  useEffect(() => {
+    try {
+      window.localStorage.setItem(MEMBER_STORAGE_KEY, JSON.stringify(member));
+    } catch {
+      // Ignore storage errors in restricted environments
+    }
+  }, [member]);
 
   useEffect(() => {
     const handleHashChange = () => {
@@ -161,9 +184,11 @@ export default function App() {
       <Header
         currentView={view}
         bagCount={totalCartCount}
+        member={member}
         onNavigateHome={navigateToHome}
         onNavigatePdp={navigateToSwarovskiPdp}
         onOpenBag={() => setIsCartOpen(true)}
+        onOpenLogin={() => setIsLoginOpen(true)}
       />
 
       <div className="flex-1">
@@ -214,6 +239,21 @@ export default function App() {
           setHighlightedMachineLine(null);
         }}
         onBrowseSwarovski={navigateToSwarovskiPdp}
+        onOrderCompleted={(orderTotalSgd) => {
+          setMember((prev) =>
+            prev
+              ? { ...prev, annualSpend: prev.annualSpend + Math.round(orderTotalSgd) }
+              : null
+          );
+        }}
+      />
+
+      <LoginModal
+        isOpen={isLoginOpen}
+        member={member}
+        onClose={() => setIsLoginOpen(false)}
+        onLogin={(account) => setMember(account)}
+        onLogout={() => setMember(null)}
       />
     </div>
   );

@@ -59,7 +59,7 @@ export const STOREFRONT_CATALOG: CatalogItem[] = [
     line: 'Original',
     priceSgd: 429,
     compareAtSgd: 469,
-    tag: 'Limited Crystal Edition',
+    tag: 'Limited Edition',
     shortDesc: 'Brushed stainless steel 19-bar Original machine accented with precision-cut Swarovski crystals.',
     image: IMAGES.swarovskiMachine,
     isSwarovskiPdp: true,
@@ -160,7 +160,29 @@ export const STOREFRONT_CATALOG: CatalogItem[] = [
     image: IMAGES.aeroccinoAccessories,
   },
 
-  // Bundle Sets (First Timers, Casual Drinkers, Coffee Connoisseurs)
+  // Bundle Sets (Swarovski Shine Limited Edition first, followed by First Timers, Casual Drinkers, Coffee Connoisseurs)
+  {
+    id: 'swarovski-shine-bundle',
+    slug: 'swarovski-shine-bundle',
+    name: 'Nespresso × Swarovski Shine Bundle',
+    category: 'bundles',
+    line: 'Original',
+    priceSgd: 499,
+    compareAtSgd: 609,
+    bundleProfile: 'connoisseurs',
+    bundleProfileLabel: 'Limited Edition · Coffee Connoisseurs',
+    tag: 'Limited Edition · Flash Deal',
+    shortDesc: 'Limited-edition CitiZ Platinum Crystal Edition paired with crystal Travel Mug, PIXIE Cups, and 62-facet Ornament.',
+    image: IMAGES.swarovskiHero,
+    isSwarovskiPdp: true,
+    bundleIncludes: [
+      'Nespresso × Swarovski CitiZ Platinum Machine',
+      'Nespresso × Swarovski Travel Mug with Crystal Holder',
+      'PIXIE Espresso & Lungo Stainless Cups Set',
+      'Festive 62-Facet Crystal Capsule Ornament',
+      'Complimentary 14-Capsule Original Tasting Box',
+    ],
+  },
   {
     id: 'bundle-first-timer-discovery',
     slug: 'vertuo-discovery-starter-bundle',
@@ -256,33 +278,13 @@ export const STOREFRONT_CATALOG: CatalogItem[] = [
       'PIXIE Double-Walled Espresso & Lungo Cups',
     ],
   },
-  {
-    id: 'swarovski-shine-bundle',
-    slug: 'swarovski-shine-bundle',
-    name: 'Nespresso × Swarovski Shine Bundle',
-    category: 'bundles',
-    line: 'Original',
-    priceSgd: 499,
-    compareAtSgd: 609,
-    bundleProfile: 'connoisseurs',
-    bundleProfileLabel: 'Coffee Connoisseurs',
-    tag: 'Flash Deal · Coffee Connoisseurs',
-    shortDesc: 'CitiZ Platinum Crystal Edition paired with crystal-embellished Travel Mug, PIXIE Cups, and 62-facet Ornament.',
-    image: IMAGES.swarovskiHero,
-    isSwarovskiPdp: true,
-    bundleIncludes: [
-      'Nespresso × Swarovski CitiZ Platinum Machine',
-      'Swarovski Travel Mug & Crystal Collar Holder',
-      'PIXIE Espresso & Lungo Cups + 62-Facet Ornament',
-    ],
-  },
 ];
 
 export const SWAROVSKI_VARIANTS: SwarovskiVariant[] = [
   {
     id: 'shine-bundle',
-    label: 'Swarovski Shine Bundle',
-    subtitle: 'Machine + Crystal Travel Mug + PIXIE Cups + Ornament',
+    label: 'Nespresso × Swarovski Shine Bundle',
+    subtitle: 'Limited Edition · Machine + Crystal Travel Mug + PIXIE Cups + Ornament',
     priceSgd: 499,
     compareAtSgd: 609,
     sku: 'SG-OL-SWA-BUNDLE-26',

@@ -145,7 +145,7 @@ export function StorefrontHome({
               <p className="text-[15px] leading-relaxed text-[#D8D3CC] max-w-md">
                 Limited-edition Nespresso × Swarovski Shine Bundle. A brushed stainless steel CitiZ
                 Platinum machine accented with precision-cut Swarovski crystals, paired with the
-                crystal Travel Mug, PIXIE Cups, and 62-facet Ornament.
+                crystal Travel Mug, PIXIE Cups, 62-facet Ornament, and 14-capsule tasting box.
               </p>
 
               <OfferCountdown

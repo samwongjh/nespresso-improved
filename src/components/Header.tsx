@@ -1,26 +1,33 @@
 import { useState } from 'react';
-import { Menu, ShoppingBag, X } from 'lucide-react';
+import { Award, Menu, ShoppingBag, User, UserCheck, X } from 'lucide-react';
 import { ProductCategory } from '../data/catalog';
+import { MemberAccount, getTierProgress } from '../data/membership';
 
 export type AppView = 'home' | 'pdp';
 
 interface HeaderProps {
   currentView: AppView;
   bagCount: number;
+  member: MemberAccount | null;
   onNavigateHome: (sectionId?: string, categoryFilter?: ProductCategory | 'all') => void;
   onNavigatePdp: () => void;
   onOpenBag: () => void;
+  onOpenLogin: () => void;
 }
 
 export function Header({
   currentView,
   bagCount,
+  member,
   onNavigateHome,
   onNavigatePdp,
   onOpenBag,
+  onOpenLogin,
 }: HeaderProps) {
   const [showPromo, setShowPromo] = useState(true);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+  const tierInfo = member ? getTierProgress(member.annualSpend) : null;
 
   const handleNavClick = (action: () => void) => {
     setMobileMenuOpen(false);
@@ -28,7 +35,8 @@ export function Header({
   };
 
   return (
-    <div className="sticky top-0 z-40">
+    <>
+      <div className="sticky top-0 z-40">
       {showPromo && (
         <div className="bg-[#1B1918] text-[#FAF9F6] text-xs px-4 py-2 flex items-center justify-between border-b border-white/10">
           <div className="w-6 shrink-0" aria-hidden="true" />
@@ -116,8 +124,27 @@ export function Header({
             </button>
           </nav>
 
-          {/* Zone 3: 1 primary action */}
-          <div className="flex items-center shrink-0">
+          {/* Zone 3: Member Account / Login + Cart */}
+          <div className="flex items-center gap-2.5 shrink-0">
+            <button
+              type="button"
+              onClick={onOpenLogin}
+              className="inline-flex items-center gap-2 px-3.5 py-2 bg-[#FFFFFF] border border-[#DDD8D0] hover:border-[#1B1918] text-[#1B1918] text-xs font-medium rounded-sm transition-colors whitespace-nowrap shrink-0 cursor-pointer min-h-[40px] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#9E7B4F]"
+              aria-label={member ? `Signed in as ${member.name}. Open membership details` : 'Log in to Nespresso Club'}
+            >
+              {member ? (
+                <>
+                  <UserCheck className="w-4 h-4 text-[#9E7B4F] shrink-0" />
+                  <span className="max-w-[110px] truncate">{member.name}</span>
+                </>
+              ) : (
+                <>
+                  <User className="w-4 h-4 text-[#57524E] shrink-0" />
+                  <span>Log In</span>
+                </>
+              )}
+            </button>
+
             <button
               type="button"
               onClick={onOpenBag}
@@ -171,5 +198,85 @@ export function Header({
         )}
       </header>
     </div>
+
+      {/* Membership Tier & Next-Tier Progress Bar */}
+      <div className="bg-[#F5F2EC] border-b border-[#E7E4DF]">
+        <div className="max-w-[1320px] mx-auto px-4 sm:px-8 py-2.5 flex flex-col sm:flex-row sm:items-center justify-between gap-2 sm:gap-6">
+          {member && tierInfo ? (
+            <>
+              <button
+                type="button"
+                onClick={onOpenLogin}
+                className="flex items-center gap-2.5 text-xs text-left cursor-pointer group"
+              >
+                <Award className="w-4 h-4 text-[#9E7B4F] shrink-0" />
+                <span className="font-semibold text-[#1B1918] group-hover:underline underline-offset-2">
+                  {tierInfo.currentTier.name}
+                </span>
+                <span className="text-[#9A938B]" aria-hidden="true">
+                  ·
+                </span>
+                <span className="text-[#4A4642]">
+                  {tierInfo.nextTier ? (
+                    <>
+                      You are{' '}
+                      <span className="font-semibold text-[#1B1918] tabular-nums">
+                        ${tierInfo.amountToNext}
+                      </span>{' '}
+                      away from{' '}
+                      <span className="font-medium text-[#1B1918]">{tierInfo.nextTier.name}</span>
+                    </>
+                  ) : (
+                    <span>Highest Nespresso Club status unlocked</span>
+                  )}
+                </span>
+              </button>
+
+              <div className="flex items-center gap-3 shrink-0">
+                <div
+                  className="w-36 sm:w-44 h-2 bg-[#DFDAD1] rounded-full overflow-hidden"
+                  role="progressbar"
+                  aria-valuenow={member.annualSpend}
+                  aria-valuemin={0}
+                  aria-valuemax={tierInfo.targetThreshold}
+                  aria-label="Membership tier progress"
+                >
+                  <div
+                    className="h-full bg-[#9E7B4F] rounded-full transition-all duration-500"
+                    style={{ width: `${tierInfo.progressPercent}%` }}
+                  />
+                </div>
+                <span className="font-mono text-xs text-[#4A4642] tabular-nums">
+                  ${member.annualSpend} / ${tierInfo.targetThreshold}
+                </span>
+              </div>
+            </>
+          ) : (
+            <>
+              <div className="flex items-center gap-2.5 text-xs text-[#4A4642]">
+                <Award className="w-4 h-4 text-[#9E7B4F] shrink-0" />
+                <span>
+                  <span className="font-semibold text-[#1B1918]">Nespresso Club</span>
+                  <span className="mx-2 text-[#9A938B]" aria-hidden="true">
+                    ·
+                  </span>
+                  <span>
+                    Sign in to view your current membership tier and progress toward Ambassador Tier
+                  </span>
+                </span>
+              </div>
+
+              <button
+                type="button"
+                onClick={onOpenLogin}
+                className="text-xs font-semibold uppercase tracking-[0.12em] text-[#9E7B4F] hover:text-[#1B1918] transition-colors cursor-pointer self-start sm:self-auto whitespace-nowrap"
+              >
+                Log In to Track Progress
+              </button>
+            </>
+          )}
+        </div>
+      </div>
+    </>
   );
 }

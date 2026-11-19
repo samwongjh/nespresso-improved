@@ -34,6 +34,7 @@ interface BagDrawerProps {
   onRemoveItem: (id: string) => void;
   onClearBag: () => void;
   onBrowseSwarovski: () => void;
+  onOrderCompleted?: (orderTotalSgd: number) => void;
 }
 
 type DrawerStep = 'cart' | 'checkout' | 'confirmed';
@@ -52,6 +53,7 @@ export function BagDrawer({
   onRemoveItem,
   onClearBag,
   onBrowseSwarovski,
+  onOrderCompleted,
 }: BagDrawerProps) {
   const [step, setStep] = useState<DrawerStep>('cart');
   const [capsuleTab, setCapsuleTab] = useState<'Original' | 'Vertuo'>('Original');
@@ -136,6 +138,7 @@ export function BagDrawer({
       postal: postalCode.trim(),
     });
     onClearBag();
+    onOrderCompleted?.(totalSgd);
     setStep('confirmed');
   };
 
