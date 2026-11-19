@@ -2,9 +2,10 @@ import { useEffect, useState } from 'react';
 import { BagDrawer, BagItem } from './components/BagDrawer';
 import { Footer } from './components/Footer';
 import { AppView, Header } from './components/Header';
+import { MachineCompareModal } from './components/MachineCompareModal';
 import { StorefrontHome } from './components/StorefrontHome';
 import { SwarovskiBundlePDP } from './components/SwarovskiBundlePDP';
-import { ProductCategory } from './data/catalog';
+import { MachineComparisonSpec, ProductCategory } from './data/catalog';
 
 const BAG_STORAGE_KEY = 'nespresso_sg_bag_v1';
 
@@ -21,8 +22,11 @@ function getInitialViewFromHash(): AppView {
 export default function App() {
   const [view, setView] = useState<AppView>(getInitialViewFromHash);
   const [activeCategory, setActiveCategory] = useState<ProductCategory | 'all'>('all');
-  const [isBagOpen, setIsBagOpen] = useState(false);
-  const [bagItems, setBagItems] = useState<BagItem[]>(() => {
+  const [isCartOpen, setIsCartOpen] = useState(false);
+  const [isCompareOpen, setIsCompareOpen] = useState(false);
+  const [compareIds, setCompareIds] = useState<string[]>([]);
+  const [highlightedMachineLine, setHighlightedMachineLine] = useState<'Original' | 'Vertuo' | null>(null);
+  const [cartItems, setCartItems] = useState<BagItem[]>(() => {
     try {
       const saved = window.localStorage.getItem(BAG_STORAGE_KEY);
       return saved ? (JSON.parse(saved) as BagItem[]) : [];
@@ -33,11 +37,11 @@ export default function App() {
 
   useEffect(() => {
     try {
-      window.localStorage.setItem(BAG_STORAGE_KEY, JSON.stringify(bagItems));
+      window.localStorage.setItem(BAG_STORAGE_KEY, JSON.stringify(cartItems));
     } catch {
       // Ignore storage errors in restricted environments
     }
-  }, [bagItems]);
+  }, [cartItems]);
 
   useEffect(() => {
     const handleHashChange = () => {
@@ -68,8 +72,8 @@ export default function App() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  const handleAddToBag = (incoming: BagItem) => {
-    setBagItems((prev) => {
+  const handleAddToCart = (incoming: BagItem) => {
+    setCartItems((prev) => {
       const existing = prev.find((i) => i.id === incoming.id);
       if (existing) {
         return prev.map((i) =>
@@ -78,47 +82,77 @@ export default function App() {
       }
       return [...prev, incoming];
     });
-    setIsBagOpen(true);
+
+    if (
+      incoming.itemType === 'machine' &&
+      (incoming.line === 'Original' || incoming.line === 'Vertuo')
+    ) {
+      setHighlightedMachineLine(incoming.line);
+    }
+    setIsCartOpen(true);
+  };
+
+  const handleAddComparedMachineToCart = (machine: MachineComparisonSpec) => {
+    handleAddToCart({
+      id: machine.id,
+      name: machine.name,
+      subtitle: `${machine.line} Line`,
+      priceSgd: machine.priceSgd,
+      image: machine.image,
+      quantity: 1,
+      itemType: 'machine',
+      line: machine.line,
+    });
+  };
+
+  const handleToggleCompare = (machineId: string) => {
+    setCompareIds((prev) =>
+      prev.includes(machineId) ? prev.filter((id) => id !== machineId) : [...prev, machineId]
+    );
   };
 
   const handleUpdateQuantity = (id: string, nextQty: number) => {
     if (nextQty <= 0) {
-      setBagItems((prev) => prev.filter((item) => item.id !== id));
+      setCartItems((prev) => prev.filter((item) => item.id !== id));
       return;
     }
-    setBagItems((prev) =>
+    setCartItems((prev) =>
       prev.map((item) => (item.id === id ? { ...item, quantity: Math.min(10, nextQty) } : item))
     );
   };
 
   const handleRemoveItem = (id: string) => {
-    setBagItems((prev) => prev.filter((item) => item.id !== id));
+    setCartItems((prev) => prev.filter((item) => item.id !== id));
   };
 
-  const totalBagCount = bagItems.reduce((sum, item) => sum + item.quantity, 0);
+  const totalCartCount = cartItems.reduce((sum, item) => sum + item.quantity, 0);
 
   return (
     <div className="min-h-screen flex flex-col bg-[#FAF9F6] text-[#1B1918]">
       <Header
         currentView={view}
-        bagCount={totalBagCount}
+        bagCount={totalCartCount}
         onNavigateHome={navigateToHome}
         onNavigatePdp={navigateToSwarovskiPdp}
-        onOpenBag={() => setIsBagOpen(true)}
+        onOpenBag={() => setIsCartOpen(true)}
       />
 
       <div className="flex-1">
         {view === 'home' ? (
           <StorefrontHome
             activeCategory={activeCategory}
+            compareIds={compareIds}
             onChangeCategory={setActiveCategory}
+            onToggleCompare={handleToggleCompare}
+            onOpenCompare={() => setIsCompareOpen(true)}
+            onClearCompare={() => setCompareIds([])}
             onOpenSwarovskiPdp={navigateToSwarovskiPdp}
-            onAddToBag={handleAddToBag}
+            onAddToBag={handleAddToCart}
           />
         ) : (
           <SwarovskiBundlePDP
             onBackToStorefront={() => navigateToHome('top', 'all')}
-            onAddToBag={handleAddToBag}
+            onAddToBag={handleAddToCart}
           />
         )}
       </div>
@@ -128,13 +162,27 @@ export default function App() {
         onNavigatePdp={navigateToSwarovskiPdp}
       />
 
+      <MachineCompareModal
+        isOpen={isCompareOpen}
+        selectedIds={compareIds}
+        onToggleMachine={handleToggleCompare}
+        onClose={() => setIsCompareOpen(false)}
+        onAddToCart={handleAddComparedMachineToCart}
+        onOpenSwarovskiPdp={navigateToSwarovskiPdp}
+      />
+
       <BagDrawer
-        isOpen={isBagOpen}
-        items={bagItems}
-        onClose={() => setIsBagOpen(false)}
+        isOpen={isCartOpen}
+        items={cartItems}
+        highlightedMachineLine={highlightedMachineLine}
+        onClose={() => setIsCartOpen(false)}
+        onAddToCart={handleAddToCart}
         onUpdateQuantity={handleUpdateQuantity}
         onRemoveItem={handleRemoveItem}
-        onClearBag={() => setBagItems([])}
+        onClearBag={() => {
+          setCartItems([]);
+          setHighlightedMachineLine(null);
+        }}
         onBrowseSwarovski={navigateToSwarovskiPdp}
       />
     </div>

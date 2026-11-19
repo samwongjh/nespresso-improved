@@ -1,6 +1,16 @@
-import { useState } from 'react';
-import { ArrowLeft, CheckCircle2, Minus, Plus, ShoppingBag, Trash2, X } from 'lucide-react';
-import { formatSgd } from '../data/catalog';
+import { useEffect, useState } from 'react';
+import {
+  ArrowLeft,
+  Check,
+  CheckCircle2,
+  Coffee,
+  Minus,
+  Plus,
+  ShoppingBag,
+  Trash2,
+  X,
+} from 'lucide-react';
+import { PAIRING_SLEEVES, VERTUO_PAIRING_SLEEVES, formatSgd } from '../data/catalog';
 import { ResilientImage } from './ResilientImage';
 
 export interface BagItem {
@@ -10,19 +20,23 @@ export interface BagItem {
   priceSgd: number;
   image: string;
   quantity: number;
+  itemType?: 'machine' | 'capsule' | 'accessory' | 'bundle';
+  line?: 'Original' | 'Vertuo' | 'Accessories';
 }
 
 interface BagDrawerProps {
   isOpen: boolean;
   items: BagItem[];
+  highlightedMachineLine?: 'Original' | 'Vertuo' | null;
   onClose: () => void;
+  onAddToCart: (item: BagItem) => void;
   onUpdateQuantity: (id: string, nextQuantity: number) => void;
   onRemoveItem: (id: string) => void;
   onClearBag: () => void;
   onBrowseSwarovski: () => void;
 }
 
-type DrawerStep = 'bag' | 'checkout' | 'confirmed';
+type DrawerStep = 'cart' | 'checkout' | 'confirmed';
 type PaymentMethod = 'Card' | 'PayNow' | 'Cash on Delivery';
 
 const FREE_DELIVERY_THRESHOLD = 80;
@@ -31,13 +45,17 @@ const STANDARD_DELIVERY_FEE = 10;
 export function BagDrawer({
   isOpen,
   items,
+  highlightedMachineLine,
   onClose,
+  onAddToCart,
   onUpdateQuantity,
   onRemoveItem,
   onClearBag,
   onBrowseSwarovski,
 }: BagDrawerProps) {
-  const [step, setStep] = useState<DrawerStep>('bag');
+  const [step, setStep] = useState<DrawerStep>('cart');
+  const [capsuleTab, setCapsuleTab] = useState<'Original' | 'Vertuo'>('Original');
+  const [justAddedCapsuleId, setJustAddedCapsuleId] = useState<string | null>(null);
   const [fullName, setFullName] = useState('');
   const [phone, setPhone] = useState('');
   const [address, setAddress] = useState('');
@@ -51,6 +69,12 @@ export function BagDrawer({
     postal: string;
   } | null>(null);
 
+  useEffect(() => {
+    if (highlightedMachineLine === 'Vertuo' || highlightedMachineLine === 'Original') {
+      setCapsuleTab(highlightedMachineLine);
+    }
+  }, [highlightedMachineLine]);
+
   if (!isOpen) return null;
 
   const subtotalSgd = items.reduce((sum, item) => sum + item.priceSgd * item.quantity, 0);
@@ -60,11 +84,41 @@ export function BagDrawer({
   const amountToFreeDelivery = Math.max(0, FREE_DELIVERY_THRESHOLD - subtotalSgd);
   const progressPct = Math.min(100, (subtotalSgd / FREE_DELIVERY_THRESHOLD) * 100);
 
+  const hasMachineInCart =
+    Boolean(highlightedMachineLine) ||
+    items.some(
+      (item) =>
+        item.itemType === 'machine' ||
+        item.name.toLowerCase().includes('machine') ||
+        item.name.toLowerCase().includes('citiz') ||
+        item.name.toLowerCase().includes('vertuo next') ||
+        item.name.toLowerCase().includes('swarovski shine bundle')
+    );
+
+  const suggestedCapsules = capsuleTab === 'Vertuo' ? VERTUO_PAIRING_SLEEVES : PAIRING_SLEEVES;
+
   const handleClose = () => {
     if (step === 'confirmed') {
-      setStep('bag');
+      setStep('cart');
     }
     onClose();
+  };
+
+  const handleAddCompatibleCapsule = (sleeve: (typeof PAIRING_SLEEVES)[number] | (typeof VERTUO_PAIRING_SLEEVES)[number]) => {
+    onAddToCart({
+      id: sleeve.id,
+      name: `${sleeve.name} (10 Capsules)`,
+      subtitle: `${sleeve.line} Line Sleeve`,
+      priceSgd: sleeve.priceSgd,
+      image: sleeve.image,
+      quantity: 1,
+      itemType: 'capsule',
+      line: sleeve.line,
+    });
+    setJustAddedCapsuleId(sleeve.id);
+    window.setTimeout(() => {
+      setJustAddedCapsuleId((curr) => (curr === sleeve.id ? null : curr));
+    }, 1400);
   };
 
   const handlePlaceOrder = (e: React.FormEvent) => {
@@ -90,7 +144,7 @@ export function BagDrawer({
       className="fixed inset-0 z-50 flex justify-end bg-[#1B1918]/50 backdrop-blur-[2px]"
       role="dialog"
       aria-modal="true"
-      aria-label="Shopping Bag"
+      aria-label="Shopping Cart"
     >
       <div className="absolute inset-0" onClick={handleClose} aria-hidden="true" />
 
@@ -101,15 +155,15 @@ export function BagDrawer({
             {step === 'checkout' && (
               <button
                 type="button"
-                onClick={() => setStep('bag')}
+                onClick={() => setStep('cart')}
                 className="p-1.5 -ml-1.5 text-[#57524E] hover:text-[#1B1918] transition-colors cursor-pointer"
-                aria-label="Back to shopping bag"
+                aria-label="Back to shopping cart"
               >
                 <ArrowLeft className="w-4 h-4" />
               </button>
             )}
             <h2 className="font-serif text-xl font-medium text-[#1B1918]">
-              {step === 'bag' && 'Your Shopping Bag'}
+              {step === 'cart' && 'Your Shopping Cart'}
               {step === 'checkout' && 'Singapore Delivery & Payment'}
               {step === 'confirmed' && 'Order Confirmed'}
             </h2>
@@ -119,14 +173,14 @@ export function BagDrawer({
             type="button"
             onClick={handleClose}
             className="p-2 -mr-2 text-[#57524E] hover:text-[#1B1918] transition-colors cursor-pointer min-h-[40px] min-w-[40px] flex items-center justify-center"
-            aria-label="Close shopping bag"
+            aria-label="Close shopping cart"
           >
             <X className="w-5 h-5" />
           </button>
         </div>
 
-        {/* Step 1: Bag Items */}
-        {step === 'bag' && (
+        {/* Step 1: Cart Items */}
+        {step === 'cart' && (
           <>
             {/* Free Delivery Threshold Banner */}
             {items.length > 0 && (
@@ -156,7 +210,7 @@ export function BagDrawer({
                   <ShoppingBag className="w-10 h-10 text-[#9E7B4F] stroke-[1.4]" />
                   <div className="space-y-1.5">
                     <p className="text-base font-medium text-[#1B1918]">
-                      Your shopping bag is currently empty.
+                      Your shopping cart is currently empty.
                     </p>
                     <p className="text-xs text-[#6B655F] max-w-xs leading-relaxed">
                       Explore the limited-edition Nespresso × Swarovski Shine Bundle or Original
@@ -175,69 +229,149 @@ export function BagDrawer({
                   </button>
                 </div>
               ) : (
-                items.map((item) => (
-                  <div
-                    key={item.id}
-                    className="bg-[#FFFFFF] border border-[#E7E4DF] rounded-sm p-4 flex gap-4"
-                  >
-                    <div className="w-20 h-20 rounded-sm overflow-hidden bg-[#F2EFE9] shrink-0">
-                      <ResilientImage
-                        src={item.image}
-                        alt={item.name}
-                        className="w-full h-full object-cover"
-                        fallbackTitle={item.name}
-                      />
-                    </div>
-                    <div className="flex-1 min-w-0 flex flex-col justify-between">
-                      <div className="flex items-start justify-between gap-2">
-                        <div className="min-w-0">
-                          <h3 className="text-sm font-semibold text-[#1B1918] leading-snug truncate">
-                            {item.name}
-                          </h3>
-                          <p className="text-xs text-[#6B655F] truncate mt-0.5">
-                            {item.subtitle}
-                          </p>
-                        </div>
-                        <button
-                          type="button"
-                          onClick={() => onRemoveItem(item.id)}
-                          className="text-[#8E8882] hover:text-[#1B1918] p-1 transition-colors cursor-pointer shrink-0"
-                          aria-label={`Remove ${item.name}`}
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
+                <>
+                  {items.map((item) => (
+                    <div
+                      key={item.id}
+                      className="bg-[#FFFFFF] border border-[#E7E4DF] rounded-sm p-4 flex gap-4"
+                    >
+                      <div className="w-20 h-20 rounded-sm overflow-hidden bg-[#F2EFE9] shrink-0">
+                        <ResilientImage
+                          src={item.image}
+                          alt={item.name}
+                          className="w-full h-full object-cover"
+                          fallbackTitle={item.name}
+                        />
                       </div>
-
-                      <div className="flex items-center justify-between pt-3">
-                        <div className="inline-flex items-center border border-[#DDD8D0] rounded-sm">
+                      <div className="flex-1 min-w-0 flex flex-col justify-between">
+                        <div className="flex items-start justify-between gap-2">
+                          <div className="min-w-0">
+                            <h3 className="text-sm font-semibold text-[#1B1918] leading-snug truncate">
+                              {item.name}
+                            </h3>
+                            <p className="text-xs text-[#6B655F] truncate mt-0.5">
+                              {item.subtitle}
+                            </p>
+                          </div>
                           <button
                             type="button"
-                            onClick={() => onUpdateQuantity(item.id, item.quantity - 1)}
-                            className="px-2 py-1 text-[#57524E] hover:text-[#1B1918] cursor-pointer"
-                            aria-label="Decrease item quantity"
+                            onClick={() => onRemoveItem(item.id)}
+                            className="text-[#8E8882] hover:text-[#1B1918] p-1 transition-colors cursor-pointer shrink-0"
+                            aria-label={`Remove ${item.name}`}
                           >
-                            <Minus className="w-3.5 h-3.5" />
+                            <Trash2 className="w-4 h-4" />
                           </button>
-                          <span className="w-7 text-center text-xs font-semibold text-[#1B1918] tabular-nums">
-                            {item.quantity}
+                        </div>
+
+                        <div className="flex items-center justify-between pt-3">
+                          <div className="inline-flex items-center border border-[#DDD8D0] rounded-sm">
+                            <button
+                              type="button"
+                              onClick={() => onUpdateQuantity(item.id, item.quantity - 1)}
+                              className="px-2 py-1 text-[#57524E] hover:text-[#1B1918] cursor-pointer"
+                              aria-label="Decrease item quantity"
+                            >
+                              <Minus className="w-3.5 h-3.5" />
+                            </button>
+                            <span className="w-7 text-center text-xs font-semibold text-[#1B1918] tabular-nums">
+                              {item.quantity}
+                            </span>
+                            <button
+                              type="button"
+                              onClick={() => onUpdateQuantity(item.id, item.quantity + 1)}
+                              className="px-2 py-1 text-[#57524E] hover:text-[#1B1918] cursor-pointer"
+                              aria-label="Increase item quantity"
+                            >
+                              <Plus className="w-3.5 h-3.5" />
+                            </button>
+                          </div>
+
+                          <span className="text-sm font-semibold text-[#1B1918] tabular-nums">
+                            {formatSgd(item.priceSgd * item.quantity)}
                           </span>
-                          <button
-                            type="button"
-                            onClick={() => onUpdateQuantity(item.id, item.quantity + 1)}
-                            className="px-2 py-1 text-[#57524E] hover:text-[#1B1918] cursor-pointer"
-                            aria-label="Increase item quantity"
-                          >
-                            <Plus className="w-3.5 h-3.5" />
-                          </button>
                         </div>
-
-                        <span className="text-sm font-semibold text-[#1B1918] tabular-nums">
-                          {formatSgd(item.priceSgd * item.quantity)}
-                        </span>
                       </div>
                     </div>
-                  </div>
-                ))
+                  ))}
+
+                  {/* Compatible Capsule Pairing Prompt when a Machine is Added */}
+                  {hasMachineInCart && (
+                    <div className="bg-[#FFFFFF] border border-[#DDD3C3] rounded-sm p-4 space-y-3">
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="flex items-start gap-2.5">
+                          <Coffee className="w-4 h-4 text-[#9E7B4F] shrink-0 mt-0.5" />
+                          <div>
+                            <h3 className="text-xs font-semibold uppercase tracking-wider text-[#1B1918]">
+                              Add Capsules for Your Machine
+                            </h3>
+                            <p className="text-xs text-[#57524E] mt-0.5">
+                              Pair your machine with 10-capsule sleeves so you can brew immediately.
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="inline-flex items-center gap-1 p-1 bg-[#F2EFE9] rounded-sm">
+                        {(['Original', 'Vertuo'] as const).map((line) => (
+                          <button
+                            key={line}
+                            type="button"
+                            onClick={() => setCapsuleTab(line)}
+                            className={`px-3 py-1 text-[11px] font-semibold rounded-sm transition-colors cursor-pointer ${
+                              capsuleTab === line
+                                ? 'bg-[#FFFFFF] text-[#1B1918] shadow-xs'
+                                : 'text-[#57524E] hover:text-[#1B1918]'
+                            }`}
+                          >
+                            {line} Capsules
+                          </button>
+                        ))}
+                      </div>
+
+                      <div className="space-y-2">
+                        {suggestedCapsules.map((sleeve) => {
+                          const isAdded = justAddedCapsuleId === sleeve.id;
+                          return (
+                            <div
+                              key={sleeve.id}
+                              className="flex items-center justify-between gap-3 py-2 border-t border-[#F2EFE9] first:border-t-0 first:pt-0"
+                            >
+                              <div className="min-w-0">
+                                <div className="text-xs font-semibold text-[#1B1918] truncate">
+                                  {sleeve.name}
+                                </div>
+                                <div className="text-[11px] text-[#6B655F] truncate">
+                                  {sleeve.notes} · <span className="tabular-nums font-medium text-[#1B1918]">{formatSgd(sleeve.priceSgd)}</span>
+                                </div>
+                              </div>
+                              <button
+                                type="button"
+                                onClick={() => handleAddCompatibleCapsule(sleeve)}
+                                className={`px-2.5 py-1.5 text-[11px] font-semibold uppercase tracking-wider rounded-sm transition-colors shrink-0 cursor-pointer inline-flex items-center gap-1 ${
+                                  isAdded
+                                    ? 'bg-[#2C4C3E] text-white'
+                                    : 'bg-[#FAF9F6] border border-[#DDD8D0] hover:border-[#1B1918] text-[#1B1918]'
+                                }`}
+                              >
+                                {isAdded ? (
+                                  <>
+                                    <Check className="w-3 h-3" />
+                                    <span>Added</span>
+                                  </>
+                                ) : (
+                                  <>
+                                    <Plus className="w-3 h-3" />
+                                    <span>Add</span>
+                                  </>
+                                )}
+                              </button>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
+                </>
               )}
             </div>
 

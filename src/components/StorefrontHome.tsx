@@ -1,5 +1,14 @@
 import { useMemo, useState } from 'react';
-import { ArrowRight, Check, Search, ShieldCheck, Sparkles, Truck, Recycle } from 'lucide-react';
+import {
+  ArrowRight,
+  Check,
+  GitCompareArrows,
+  Search,
+  ShieldCheck,
+  Sparkles,
+  Truck,
+  Recycle,
+} from 'lucide-react';
 import {
   BundleProfile,
   CatalogItem,
@@ -12,7 +21,11 @@ import { ResilientImage } from './ResilientImage';
 
 interface StorefrontHomeProps {
   activeCategory: ProductCategory | 'all';
+  compareIds: string[];
   onChangeCategory: (category: ProductCategory | 'all') => void;
+  onToggleCompare: (machineId: string) => void;
+  onOpenCompare: () => void;
+  onClearCompare: () => void;
   onOpenSwarovskiPdp: () => void;
   onAddToBag: (item: {
     id: string;
@@ -21,6 +34,8 @@ interface StorefrontHomeProps {
     priceSgd: number;
     image: string;
     quantity: number;
+    itemType?: 'machine' | 'capsule' | 'accessory' | 'bundle';
+    line?: 'Original' | 'Vertuo' | 'Accessories';
   }) => void;
 }
 
@@ -41,7 +56,11 @@ const BUNDLE_PROFILE_TABS: { id: BundleProfile | 'all'; label: string; hint: str
 
 export function StorefrontHome({
   activeCategory,
+  compareIds,
   onChangeCategory,
+  onToggleCompare,
+  onOpenCompare,
+  onClearCompare,
   onOpenSwarovskiPdp,
   onAddToBag,
 }: StorefrontHomeProps) {
@@ -76,6 +95,15 @@ export function StorefrontHome({
   }, [activeCategory, bundleProfileFilter, searchQuery]);
 
   const handleQuickAdd = (item: CatalogItem) => {
+    const itemType: 'machine' | 'capsule' | 'accessory' | 'bundle' =
+      item.category === 'machines'
+        ? 'machine'
+        : item.category === 'capsules'
+          ? 'capsule'
+          : item.category === 'bundles'
+            ? 'bundle'
+            : 'accessory';
+
     onAddToBag({
       id: item.id,
       name: item.name,
@@ -83,6 +111,8 @@ export function StorefrontHome({
       priceSgd: item.priceSgd,
       image: item.image,
       quantity: 1,
+      itemType,
+      line: item.line,
     });
     setJustAddedId(item.id);
     window.setTimeout(() => {
@@ -228,6 +258,40 @@ export function StorefrontHome({
           </div>
         </div>
 
+        {/* Machine Comparison Quick Action Bar */}
+        {(activeCategory === 'machines' || activeCategory === 'all') && (
+          <div className="pt-6 flex flex-wrap items-center justify-between gap-4">
+            <p className="text-xs text-[#57524E]">
+              {compareIds.length > 0
+                ? `${compareIds.length} machine${compareIds.length > 1 ? 's' : ''} selected for comparison`
+                : 'Select machines below to compare specifications side by side, or compare all models directly.'}
+            </p>
+            <div className="flex items-center gap-3">
+              {compareIds.length > 0 && (
+                <button
+                  type="button"
+                  onClick={onClearCompare}
+                  className="text-xs font-medium text-[#6B655F] hover:text-[#1B1918] transition-colors cursor-pointer"
+                >
+                  Clear Selection
+                </button>
+              )}
+              <button
+                type="button"
+                onClick={onOpenCompare}
+                className="inline-flex items-center gap-2 px-4 py-2 bg-[#FFFFFF] border border-[#DDD8D0] hover:border-[#1B1918] text-xs font-semibold text-[#1B1918] rounded-sm transition-colors cursor-pointer whitespace-nowrap"
+              >
+                <GitCompareArrows className="w-3.5 h-3.5 text-[#9E7B4F]" />
+                <span>
+                  {compareIds.length >= 2
+                    ? `Compare Selected (${compareIds.length})`
+                    : 'Compare Machines'}
+                </span>
+              </button>
+            </div>
+          </div>
+        )}
+
         {/* Drinker Profile Filter Bar (shown when Bundle Sets tab is selected) */}
         {activeCategory === 'bundles' && (
           <div className="pt-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -367,6 +431,21 @@ export function StorefrontHome({
                     </div>
 
                     <div className="flex items-center gap-2">
+                      {item.category === 'machines' && (
+                        <button
+                          type="button"
+                          onClick={() => onToggleCompare(item.id)}
+                          aria-pressed={compareIds.includes(item.id)}
+                          className={`px-3 py-2 text-xs font-medium rounded-sm border transition-colors whitespace-nowrap shrink-0 cursor-pointer min-h-[38px] ${
+                            compareIds.includes(item.id)
+                              ? 'bg-[#F2EFE9] border-[#9E7B4F] text-[#1B1918]'
+                              : 'bg-[#FFFFFF] border-[#DDD8D0] hover:border-[#1B1918] text-[#57524E]'
+                          }`}
+                        >
+                          {compareIds.includes(item.id) ? 'Comparing' : 'Compare'}
+                        </button>
+                      )}
+
                       {item.isSwarovskiPdp && item.category === 'bundles' ? (
                         <button
                           type="button"
@@ -391,7 +470,7 @@ export function StorefrontHome({
                               <span>Added</span>
                             </>
                           ) : (
-                            <span>{item.category === 'bundles' ? 'Add Bundle' : 'Add to Bag'}</span>
+                            <span>{item.category === 'bundles' ? 'Add Bundle' : 'Add to Cart'}</span>
                           )}
                         </button>
                       )}
@@ -455,7 +534,7 @@ export function StorefrontHome({
                     <span aria-hidden="true">·</span>
                     <span>30+ Original blends</span>
                   </div>
-                  <div className="pt-2">
+                  <div className="pt-2 flex flex-wrap items-center gap-6">
                     <button
                       type="button"
                       onClick={onOpenSwarovskiPdp}
@@ -463,6 +542,14 @@ export function StorefrontHome({
                     >
                       <span>Explore CitiZ Platinum × Swarovski Shine Bundle</span>
                       <ArrowRight className="w-4 h-4" />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={onOpenCompare}
+                      className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-[#1B1918] hover:text-[#9E7B4F] transition-colors cursor-pointer"
+                    >
+                      <GitCompareArrows className="w-4 h-4" />
+                      <span>Compare Original &amp; Vertuo Machines</span>
                     </button>
                   </div>
                 </div>
@@ -480,7 +567,7 @@ export function StorefrontHome({
                     <span aria-hidden="true">·</span>
                     <span>Five cup sizes</span>
                   </div>
-                  <div className="pt-2">
+                  <div className="pt-2 flex flex-wrap items-center gap-6">
                     <a
                       href="#catalog"
                       onClick={(e) => {
@@ -493,6 +580,14 @@ export function StorefrontHome({
                       <span>Browse Vertuo Machines</span>
                       <ArrowRight className="w-4 h-4" />
                     </a>
+                    <button
+                      type="button"
+                      onClick={onOpenCompare}
+                      className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-[#1B1918] hover:text-[#9E7B4F] transition-colors cursor-pointer"
+                    >
+                      <GitCompareArrows className="w-4 h-4" />
+                      <span>Compare Original &amp; Vertuo Machines</span>
+                    </button>
                   </div>
                 </div>
               )}

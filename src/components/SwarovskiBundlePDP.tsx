@@ -31,6 +31,8 @@ interface SwarovskiBundlePDPProps {
     priceSgd: number;
     image: string;
     quantity: number;
+    itemType?: 'machine' | 'capsule' | 'accessory' | 'bundle';
+    line?: 'Original' | 'Vertuo' | 'Accessories';
   }) => void;
 }
 
@@ -61,6 +63,8 @@ export function SwarovskiBundlePDP({
       priceSgd: selectedVariant.priceSgd,
       image: SWAROVSKI_GALLERY[0].src,
       quantity,
+      itemType: 'machine',
+      line: 'Original',
     });
     setAddedToBag(true);
     window.setTimeout(() => setAddedToBag(false), 1800);
@@ -74,6 +78,8 @@ export function SwarovskiBundlePDP({
       priceSgd: sleeve.priceSgd,
       image: sleeve.image,
       quantity: 1,
+      itemType: 'capsule',
+      line: 'Original',
     });
     setAddedSleeveId(sleeve.id);
     window.setTimeout(() => {
@@ -325,11 +331,11 @@ export function SwarovskiBundlePDP({
                 {addedToBag ? (
                   <>
                     <Check className="w-4 h-4" />
-                    <span>Added to Bag</span>
+                    <span>Added to Cart</span>
                   </>
                 ) : (
                   <span className="tabular-nums">
-                    Add to Bag — {formatSgd(selectedVariant.priceSgd * quantity)}
+                    Add to Cart — {formatSgd(selectedVariant.priceSgd * quantity)}
                   </span>
                 )}
               </button>
@@ -572,7 +578,7 @@ export function SwarovskiBundlePDP({
           onClick={handleAddBundle}
           className="px-5 py-2.5 bg-[#1B1918] text-[#FAF9F6] text-xs font-semibold uppercase tracking-wider rounded-sm shrink-0 min-h-[42px]"
         >
-          {addedToBag ? 'Added to Bag' : 'Add to Bag'}
+          {addedToBag ? 'Added to Cart' : 'Add to Cart'}
         </button>
       </div>
     </main>

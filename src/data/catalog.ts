@@ -441,6 +441,7 @@ export const PAIRING_SLEEVES = [
     notes: 'Intensity 9 · Intense & Creamy · Cocoa',
     priceSgd: 9.5,
     image: IMAGES.originalCapsules,
+    line: 'Original' as const,
   },
   {
     id: 'sleeve-ristretto',
@@ -448,6 +449,7 @@ export const PAIRING_SLEEVES = [
     notes: 'Intensity 10 · Dark Roast · Berry & Chocolate',
     priceSgd: 9.5,
     image: IMAGES.originalCapsules,
+    line: 'Original' as const,
   },
   {
     id: 'sleeve-volluto',
@@ -455,6 +457,100 @@ export const PAIRING_SLEEVES = [
     notes: 'Intensity 4 · Sweet & Light · Biscuit & Fruit',
     priceSgd: 9.2,
     image: IMAGES.originalCapsules,
+    line: 'Original' as const,
+  },
+];
+
+export const VERTUO_PAIRING_SLEEVES = [
+  {
+    id: 'vertuo-melozio',
+    name: 'Vertuo Melozio',
+    notes: 'Intensity 6 · Smooth Mug 230 ml · Cereal & Honey',
+    priceSgd: 12.5,
+    image: IMAGES.originalCapsules,
+    line: 'Vertuo' as const,
+  },
+  {
+    id: 'vertuo-double-chiaro',
+    name: 'Vertuo Double Espresso Chiaro',
+    notes: 'Intensity 8 · Double Espresso 80 ml · Woody & Earthy',
+    priceSgd: 11.5,
+    image: IMAGES.originalCapsules,
+    line: 'Vertuo' as const,
+  },
+  {
+    id: 'vertuo-altissio',
+    name: 'Vertuo Altissio',
+    notes: 'Intensity 9 · Espresso 40 ml · Full-Bodied Cocoa',
+    priceSgd: 10.5,
+    image: IMAGES.originalCapsules,
+    line: 'Vertuo' as const,
+  },
+];
+
+export interface MachineComparisonSpec {
+  id: string;
+  name: string;
+  line: 'Original' | 'Vertuo';
+  priceSgd: number;
+  image: string;
+  isSwarovskiPdp?: boolean;
+  extraction: string;
+  cupSizes: string;
+  heatUpTime: string;
+  waterTank: string;
+  capsuleContainer: string;
+  dimensions: string;
+  weight: string;
+  standoutFeature: string;
+}
+
+export const MACHINE_COMPARISON_SPECS: MachineComparisonSpec[] = [
+  {
+    id: 'citiz-platinum-swarovski-machine',
+    name: 'CitiZ Platinum × Swarovski',
+    line: 'Original',
+    priceSgd: 429,
+    image: IMAGES.swarovskiMachine,
+    isSwarovskiPdp: true,
+    extraction: '19-bar high-pressure pump',
+    cupSizes: 'Espresso (40 ml), Lungo (110 ml), Americano (150 ml), XL (200 ml), Hot Water',
+    heatUpTime: '25 seconds',
+    waterTank: '1.0 L removable',
+    capsuleContainer: '9–14 used capsules',
+    dimensions: '130 × 389 × 277 mm',
+    weight: '4.0 kg',
+    standoutFeature: 'Swarovski crystal-pavé stainless steel finish',
+  },
+  {
+    id: 'citiz-platinum-stainless',
+    name: 'CitiZ Platinum Stainless Steel',
+    line: 'Original',
+    priceSgd: 399,
+    image: IMAGES.vertuoMachine,
+    extraction: '19-bar high-pressure pump',
+    cupSizes: 'Espresso (40 ml), Lungo (110 ml), Americano (150 ml), XL (200 ml), Hot Water',
+    heatUpTime: '25 seconds',
+    waterTank: '1.0 L removable',
+    capsuleContainer: '12 used capsules',
+    dimensions: '130 × 389 × 277 mm',
+    weight: '4.0 kg',
+    standoutFeature: 'Dedicated two-stage Americano & descaling alert',
+  },
+  {
+    id: 'vertuo-next-matte',
+    name: 'Vertuo Next Matte Black',
+    line: 'Vertuo',
+    priceSgd: 268,
+    image: IMAGES.vertuoMachine,
+    extraction: 'Centrifusion™ (up to 7,000 RPM)',
+    cupSizes: 'Espresso (40 ml), Double (80 ml), Gran Lungo (150 ml), Mug (230 ml), Carafe (535 ml)',
+    heatUpTime: '30 seconds',
+    waterTank: '1.1 L removable',
+    capsuleContainer: '6–10 used capsules',
+    dimensions: '142 × 429 × 314 mm',
+    weight: '4.0 kg',
+    standoutFeature: 'Automatic barcode brewing calibration & Wi-Fi updates',
   },
 ];
 

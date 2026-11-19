@@ -124,7 +124,7 @@ export function Header({
               className="inline-flex items-center gap-2 px-4 py-2.5 bg-[#1B1918] text-[#FAF9F6] text-xs font-semibold tracking-wider uppercase rounded-sm hover:bg-[#332F2D] transition-colors whitespace-nowrap shrink-0 cursor-pointer min-h-[40px] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#9E7B4F]"
             >
               <ShoppingBag className="w-4 h-4" />
-              <span className="tabular-nums">Bag ({bagCount})</span>
+              <span className="tabular-nums">Cart ({bagCount})</span>
             </button>
           </div>
         </div>
