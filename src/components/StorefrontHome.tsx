@@ -19,6 +19,7 @@ import {
   formatSgd,
   getSavingsPercent,
 } from '../data/catalog';
+import { OfferCountdown } from './OfferCountdown';
 import { ResilientImage } from './ResilientImage';
 
 interface StorefrontHomeProps {
@@ -43,10 +44,10 @@ interface StorefrontHomeProps {
 
 const FILTER_TABS: { id: ProductCategory | 'all'; label: string }[] = [
   { id: 'all', label: 'All Essentials' },
-  { id: 'machines', label: 'Machines' },
-  { id: 'capsules', label: 'Coffee Capsules' },
-  { id: 'accessories', label: 'Accessories' },
   { id: 'bundles', label: 'Bundle Sets' },
+  { id: 'capsules', label: 'Coffee Capsules' },
+  { id: 'machines', label: 'Machines' },
+  { id: 'accessories', label: 'Accessories' },
 ];
 
 const BUNDLE_PROFILE_TABS: { id: BundleProfile | 'all'; label: string; hint: string }[] = [
@@ -127,31 +128,39 @@ export function StorefrontHome({
       {/* Section 1: Flagship Campaign Hero (Split Editorial Spotlight) */}
       <section className="bg-[#1B1918] text-[#FAF9F6] border-b border-[#2D2A28]">
         <div className="max-w-[1320px] mx-auto grid grid-cols-1 lg:grid-cols-12 items-stretch">
-          <div className="lg:col-span-5 px-6 sm:px-10 lg:px-12 py-12 lg:py-20 flex flex-col justify-between gap-10">
-            <div className="space-y-6">
-              <div className="flex items-center gap-2 text-xs tracking-[0.14em] uppercase text-[#C9A97E]">
-                <span>Nespresso Singapore</span>
-                <span aria-hidden="true">·</span>
-                <span>Original Collection</span>
+          <div className="lg:col-span-5 px-6 sm:px-10 lg:px-12 py-12 lg:py-16 flex flex-col justify-between gap-8">
+            <div className="space-y-5">
+              <div className="flex flex-wrap items-center gap-2 text-xs tracking-[0.14em] uppercase">
+                <span className="text-[#FAF9F6] font-semibold">Limited Edition</span>
+                <span className="text-[#C9A97E]" aria-hidden="true">·</span>
+                <span className="text-[#C9A97E]">Nespresso × Swarovski</span>
+                <span className="text-[#C9A97E]" aria-hidden="true">·</span>
+                <span className="text-[#A8A29B]">Singapore</span>
               </div>
 
-              <h1 className="font-serif text-4xl sm:text-5xl lg:text-[3.5rem] leading-[1.06] font-medium text-[#FAF9F6] [text-wrap:balance]">
+              <h1 className="font-serif text-4xl sm:text-5xl lg:text-[3.4rem] leading-[1.06] font-medium text-[#FAF9F6] [text-wrap:balance]">
                 Sculpted Brilliance. Crafted for Espresso.
               </h1>
 
               <p className="text-[15px] leading-relaxed text-[#D8D3CC] max-w-md">
-                Introducing the limited-edition Nespresso × Swarovski Shine Bundle. A brushed
-                stainless steel CitiZ Platinum machine accented with precision-cut Swarovski
-                crystals, paired with the crystal Travel Mug, PIXIE Cups, and 62-facet Ornament.
+                Limited-edition Nespresso × Swarovski Shine Bundle. A brushed stainless steel CitiZ
+                Platinum machine accented with precision-cut Swarovski crystals, paired with the
+                crystal Travel Mug, PIXIE Cups, and 62-facet Ornament.
               </p>
 
-              <div className="pt-2 flex flex-wrap items-center gap-4">
+              <OfferCountdown
+                variant="dark"
+                label="Limited-Edition Offer Ends In"
+                compact
+              />
+
+              <div className="pt-1 flex flex-wrap items-center gap-4">
                 <button
                   type="button"
                   onClick={onOpenSwarovskiPdp}
                   className="inline-flex items-center gap-3 px-6 py-3.5 bg-[#9E7B4F] hover:bg-[#B28D5E] text-white text-xs font-semibold tracking-[0.12em] uppercase rounded-sm transition-colors cursor-pointer min-h-[44px]"
                 >
-                  <span>Shop Shine Bundle — SGD 499</span>
+                  <span>Shop Limited-Edition Shine — SGD 499</span>
                   <ArrowRight className="w-4 h-4" />
                 </button>
                 <a
@@ -170,12 +179,12 @@ export function StorefrontHome({
 
             <div className="pt-6 border-t border-white/10 grid grid-cols-3 gap-4 text-xs">
               <div>
-                <div className="text-[#C9A97E] font-medium tabular-nums">19 Bar</div>
-                <div className="text-[#A8A29B] mt-0.5">Extraction Pressure</div>
+                <div className="text-[#C9A97E] font-medium tabular-nums">Limited Release</div>
+                <div className="text-[#A8A29B] mt-0.5">Holiday Collector Allocation</div>
               </div>
               <div>
                 <div className="text-[#C9A97E] font-medium tabular-nums">SGD 110 Off</div>
-                <div className="text-[#A8A29B] mt-0.5">Holiday Bundle Value</div>
+                <div className="text-[#A8A29B] mt-0.5">Shine Bundle Savings</div>
               </div>
               <div>
                 <div className="text-[#C9A97E] font-medium">Same-Day SG</div>
@@ -260,36 +269,50 @@ export function StorefrontHome({
           </div>
         </div>
 
-        {/* Flash Deal Notification for Bundle Sets */}
+        {/* Prominent Flash Deal Showcase */}
         <div
           role="region"
-          aria-label="Bundle Sets Flash Deal Notification"
-          className="mt-6 bg-[#1B1918] text-[#FAF9F6] border border-[#2D2A28] rounded-sm px-5 py-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-3"
+          aria-label="Limited-Time Flash Deal"
+          className="mt-8 bg-[#1B1918] text-[#FAF9F6] border border-[#9E7B4F]/50 rounded-sm p-6 sm:p-8 flex flex-col lg:flex-row lg:items-center justify-between gap-6 shadow-md"
         >
-          <div className="flex items-start sm:items-center gap-3">
-            <Zap className="w-4 h-4 text-[#C9A97E] shrink-0 mt-0.5 sm:mt-0" />
-            <p className="text-xs leading-relaxed">
-              <span className="font-semibold uppercase tracking-[0.12em] text-[#C9A97E]">
-                Flash Deal
+          <div className="space-y-3 max-w-2xl">
+            <div className="flex items-center gap-2.5">
+              <Zap className="w-5 h-5 text-[#C9A97E] shrink-0" />
+              <span className="text-xs font-semibold uppercase tracking-[0.16em] text-[#C9A97E]">
+                Flash Deal · Limited-Edition Singapore Release
               </span>
-              <span className="mx-2 text-white/40" aria-hidden="true">
-                ·
-              </span>
-              <span>
-                Limited-time savings up to 18% off curated Bundle Sets for First Timers, Casual
-                Drinkers &amp; Coffee Connoisseurs — complimentary Singapore delivery included.
-              </span>
+            </div>
+            <h3 className="font-serif text-2xl sm:text-3xl font-medium text-[#FAF9F6] leading-snug [text-wrap:balance]">
+              Save SGD 110 on the Nespresso × Swarovski Shine Bundle Before This Offer Ends
+            </h3>
+            <p className="text-sm text-[#D8D3CC] leading-relaxed">
+              Exclusive seasonal pricing across our limited-edition Swarovski Shine collection and
+              curated coffee machine sets while Singapore boutique allocation remains.
             </p>
           </div>
-          {activeCategory !== 'bundles' && (
-            <button
-              type="button"
-              onClick={() => onChangeCategory('bundles')}
-              className="text-xs font-semibold uppercase tracking-[0.12em] text-[#C9A97E] hover:text-white transition-colors whitespace-nowrap shrink-0 cursor-pointer text-left sm:text-right"
-            >
-              View Bundle Sets
-            </button>
-          )}
+
+          <div className="flex flex-col sm:flex-row lg:flex-col items-stretch sm:items-center lg:items-end gap-4 shrink-0">
+            <OfferCountdown variant="dark" label="Flash Deal Ends In" compact />
+            <div className="flex flex-wrap items-center gap-3">
+              <button
+                type="button"
+                onClick={onOpenSwarovskiPdp}
+                className="inline-flex items-center justify-center gap-2 px-5 py-3 bg-[#9E7B4F] hover:bg-[#B28D5E] text-white text-xs font-semibold uppercase tracking-[0.12em] rounded-sm transition-colors whitespace-nowrap shrink-0 cursor-pointer min-h-[42px]"
+              >
+                <span>Shop Swarovski Shine</span>
+                <ArrowRight className="w-3.5 h-3.5" />
+              </button>
+              {activeCategory !== 'bundles' && (
+                <button
+                  type="button"
+                  onClick={() => onChangeCategory('bundles')}
+                  className="inline-flex items-center justify-center px-5 py-3 border border-white/25 hover:border-white/60 text-[#FAF9F6] text-xs font-semibold uppercase tracking-[0.12em] rounded-sm transition-colors whitespace-nowrap shrink-0 cursor-pointer min-h-[42px]"
+                >
+                  View Bundle Sets
+                </button>
+              )}
+            </div>
+          </div>
         </div>
 
         {/* Machine Comparison Quick Action Bar */}

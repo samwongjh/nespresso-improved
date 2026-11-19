@@ -21,25 +21,20 @@ import {
   formatSgd,
   getSavingsPercent,
 } from '../data/catalog';
+import { BagItem } from './BagDrawer';
+import { OfferCountdown } from './OfferCountdown';
 import { ResilientImage } from './ResilientImage';
 
 interface SwarovskiBundlePDPProps {
   onBackToStorefront: () => void;
-  onAddToBag: (item: {
-    id: string;
-    name: string;
-    subtitle: string;
-    priceSgd: number;
-    image: string;
-    quantity: number;
-    itemType?: 'machine' | 'capsule' | 'accessory' | 'bundle';
-    line?: 'Original' | 'Vertuo' | 'Accessories';
-  }) => void;
+  onAddToBag: (item: BagItem) => void;
+  onAddManyToBag?: (items: BagItem[]) => void;
 }
 
 export function SwarovskiBundlePDP({
   onBackToStorefront,
   onAddToBag,
+  onAddManyToBag,
 }: SwarovskiBundlePDPProps) {
   const [selectedGalleryIndex, setSelectedGalleryIndex] = useState(0);
   const [isZoomed, setIsZoomed] = useState(false);
@@ -47,7 +42,7 @@ export function SwarovskiBundlePDP({
   const [quantity, setQuantity] = useState(1);
   const [addedToBag, setAddedToBag] = useState(false);
   const [activeBrewModeId, setActiveBrewModeId] = useState(BREW_MODES[0].id);
-  const [addedSleeveId, setAddedSleeveId] = useState<string | null>(null);
+  const [selectedSleeves, setSelectedSleeves] = useState<Record<string, number>>({});
 
   const selectedVariant =
     SWAROVSKI_VARIANTS.find((v) => v.id === selectedVariantId) ?? SWAROVSKI_VARIANTS[0];
@@ -57,36 +52,85 @@ export function SwarovskiBundlePDP({
   const savingsSgd = selectedVariant.compareAtSgd - selectedVariant.priceSgd;
   const savingsPct = getSavingsPercent(selectedVariant.priceSgd, selectedVariant.compareAtSgd);
 
-  const handleAddBundle = () => {
-    onAddToBag({
-      id: selectedVariant.id,
-      name: selectedVariant.label,
-      subtitle: `${selectedVariant.subtitle} · SKU ${selectedVariant.sku}`,
-      priceSgd: selectedVariant.priceSgd,
-      image: SWAROVSKI_GALLERY[0].src,
-      quantity,
-      itemType: 'machine',
-      line: 'Original',
+  const selectedSleeveEntries = PAIRING_SLEEVES.filter((s) => (selectedSleeves[s.id] ?? 0) > 0);
+  const totalSleeveCount = selectedSleeveEntries.reduce(
+    (sum, s) => sum + (selectedSleeves[s.id] ?? 0),
+    0
+  );
+  const sleevesSubtotalSgd = selectedSleeveEntries.reduce(
+    (sum, s) => sum + s.priceSgd * (selectedSleeves[s.id] ?? 0),
+    0
+  );
+  const machineSubtotalSgd = selectedVariant.priceSgd * quantity;
+  const combinedTotalSgd = machineSubtotalSgd + sleevesSubtotalSgd;
+
+  const toggleSleeve = (sleeveId: string) => {
+    setSelectedSleeves((prev) => {
+      const current = prev[sleeveId] ?? 0;
+      if (current > 0) {
+        const next = { ...prev };
+        delete next[sleeveId];
+        return next;
+      }
+      return { ...prev, [sleeveId]: 1 };
     });
-    setAddedToBag(true);
-    window.setTimeout(() => setAddedToBag(false), 1800);
   };
 
-  const handleAddSleeve = (sleeve: (typeof PAIRING_SLEEVES)[number]) => {
-    onAddToBag({
-      id: sleeve.id,
-      name: `${sleeve.name} (10 Capsules)`,
-      subtitle: 'Original Line Sleeve',
-      priceSgd: sleeve.priceSgd,
-      image: sleeve.image,
-      quantity: 1,
-      itemType: 'capsule',
-      line: 'Original',
+  const updateSleeveQty = (sleeveId: string, nextQty: number) => {
+    setSelectedSleeves((prev) => {
+      if (nextQty <= 0) {
+        const next = { ...prev };
+        delete next[sleeveId];
+        return next;
+      }
+      return { ...prev, [sleeveId]: Math.min(10, nextQty) };
     });
-    setAddedSleeveId(sleeve.id);
-    window.setTimeout(() => {
-      setAddedSleeveId((curr) => (curr === sleeve.id ? null : curr));
-    }, 1500);
+  };
+
+  const handleToggleAllSleeves = () => {
+    if (selectedSleeveEntries.length === PAIRING_SLEEVES.length) {
+      setSelectedSleeves({});
+      return;
+    }
+    const next: Record<string, number> = {};
+    for (const sleeve of PAIRING_SLEEVES) {
+      next[sleeve.id] = Math.max(1, selectedSleeves[sleeve.id] ?? 1);
+    }
+    setSelectedSleeves(next);
+  };
+
+  const handleAddBundle = () => {
+    const itemsToAdd: BagItem[] = [
+      {
+        id: selectedVariant.id,
+        name: selectedVariant.label,
+        subtitle: `${selectedVariant.subtitle} · SKU ${selectedVariant.sku}`,
+        priceSgd: selectedVariant.priceSgd,
+        image: SWAROVSKI_GALLERY[0].src,
+        quantity,
+        itemType: 'machine',
+        line: 'Original',
+      },
+      ...selectedSleeveEntries.map((sleeve) => ({
+        id: sleeve.id,
+        name: `${sleeve.name} (10 Capsules)`,
+        subtitle: 'Original Line Sleeve Add-On',
+        priceSgd: sleeve.priceSgd,
+        image: sleeve.image,
+        quantity: selectedSleeves[sleeve.id] ?? 1,
+        itemType: 'capsule' as const,
+        line: 'Original' as const,
+      })),
+    ];
+
+    if (onAddManyToBag) {
+      onAddManyToBag(itemsToAdd);
+    } else {
+      itemsToAdd.forEach((item) => onAddToBag(item));
+    }
+
+    setAddedToBag(true);
+    window.setTimeout(() => setAddedToBag(false), 1800);
   };
 
   return (
@@ -201,14 +245,16 @@ export function SwarovskiBundlePDP({
           </div>
 
           {/* Right: Sticky Contiguous Purchase Panel */}
-          <div className="lg:col-span-5 lg:sticky lg:top-24 bg-[#FFFFFF] border border-[#E7E4DF] rounded-sm p-6 sm:p-8 space-y-6">
+          <div className="lg:col-span-5 lg:sticky lg:top-24 bg-[#FFFFFF] border border-[#E7E4DF] rounded-sm p-6 sm:p-8 space-y-5">
             <div className="space-y-3">
-              <div className="flex items-center gap-2 text-xs text-[#7A746E] tracking-wide">
+              <div className="flex flex-wrap items-center gap-2 text-xs text-[#7A746E] tracking-wide">
+                <span className="uppercase tracking-[0.14em] font-semibold text-[#1B1918]">
+                  Limited Edition
+                </span>
+                <span aria-hidden="true">·</span>
                 <span className="uppercase tracking-[0.12em] font-medium text-[#9E7B4F]">
                   Original Line
                 </span>
-                <span aria-hidden="true">·</span>
-                <span>Limited Holiday Edition</span>
                 <span aria-hidden="true">·</span>
                 <span className="text-[#2C4C3E] font-medium">In Stock in Singapore</span>
               </div>
@@ -218,11 +264,18 @@ export function SwarovskiBundlePDP({
               </h1>
 
               <p className="text-sm text-[#57524E] leading-relaxed">
-                Brushed stainless steel CitiZ Platinum espresso craftsmanship elevated with
-                hand-applied Swarovski crystal brilliance—designed for festive hosting and timeless
-                daily espresso rituals.
+                Limited-edition brushed stainless steel CitiZ Platinum espresso craftsmanship
+                elevated with hand-applied Swarovski crystal brilliance—crafted for festive hosting
+                and daily espresso rituals.
               </p>
             </div>
+
+            {/* Prominent Limited Edition Countdown */}
+            <OfferCountdown
+              variant="light"
+              label="Limited-Edition Offer Ends In"
+              compact
+            />
 
             {/* Price & Savings Block */}
             <div className="pt-4 border-t border-[#F0EDE7] flex items-baseline justify-between gap-4">
@@ -294,11 +347,130 @@ export function SwarovskiBundlePDP({
               </ul>
             </div>
 
+            {/* Combined Add-On: Recommended Original Coffee Sleeves */}
+            <div className="pt-2 border-t border-[#F0EDE7] space-y-3">
+              <div className="flex items-center justify-between gap-3">
+                <div>
+                  <div className="text-xs font-semibold uppercase tracking-wider text-[#1B1918]">
+                    Add Recommended Original Coffee Sleeves
+                  </div>
+                  <p className="text-[11px] text-[#6B655F] mt-0.5">
+                    Select 10-capsule sleeves to pair alongside your machine selection.
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={handleToggleAllSleeves}
+                  className="text-[11px] font-semibold uppercase tracking-wider text-[#9E7B4F] hover:text-[#1B1918] transition-colors whitespace-nowrap shrink-0 cursor-pointer"
+                >
+                  {selectedSleeveEntries.length === PAIRING_SLEEVES.length ? 'Clear All' : 'Select All 3'}
+                </button>
+              </div>
+
+              <div className="space-y-2">
+                {PAIRING_SLEEVES.map((sleeve) => {
+                  const sleeveQty = selectedSleeves[sleeve.id] ?? 0;
+                  const isSelected = sleeveQty > 0;
+                  return (
+                    <div
+                      key={sleeve.id}
+                      className={`rounded-sm border p-3 transition-colors ${
+                        isSelected
+                          ? 'border-[#1B1918] bg-[#FAF9F6]'
+                          : 'border-[#E7E4DF] bg-[#FFFFFF] hover:border-[#C7C0B6]'
+                      }`}
+                    >
+                      <div className="flex items-center justify-between gap-3">
+                        <label className="flex items-center gap-3 min-w-0 flex-1 cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={isSelected}
+                            onChange={() => toggleSleeve(sleeve.id)}
+                            className="w-4 h-4 rounded-xs border-[#C7C0B6] accent-[#9E7B4F] shrink-0 cursor-pointer"
+                          />
+                          <div className="w-11 h-11 rounded-sm overflow-hidden bg-[#F2EFE9] shrink-0">
+                            <ResilientImage
+                              src={sleeve.image}
+                              alt={sleeve.name}
+                              className="w-full h-full object-cover"
+                              fallbackTitle={sleeve.name}
+                            />
+                          </div>
+                          <div className="min-w-0">
+                            <div className="text-xs font-semibold text-[#1B1918] truncate">
+                              {sleeve.name}
+                            </div>
+                            <div className="text-[11px] text-[#6B655F] truncate mt-0.5">
+                              {sleeve.notes}
+                            </div>
+                          </div>
+                        </label>
+
+                        <div className="flex items-center gap-2.5 shrink-0">
+                          {isSelected && (
+                            <div
+                              className="inline-flex items-center border border-[#DDD8D0] rounded-sm bg-[#FFFFFF]"
+                              aria-label={`${sleeve.name} sleeve quantity`}
+                            >
+                              <button
+                                type="button"
+                                onClick={() => updateSleeveQty(sleeve.id, sleeveQty - 1)}
+                                className="px-2 py-1 text-[#4A4642] hover:text-[#1B1918] cursor-pointer"
+                                aria-label={`Decrease ${sleeve.name} sleeves`}
+                              >
+                                <Minus className="w-3 h-3" />
+                              </button>
+                              <span className="w-6 text-center text-xs font-semibold text-[#1B1918] tabular-nums">
+                                {sleeveQty}
+                              </span>
+                              <button
+                                type="button"
+                                onClick={() => updateSleeveQty(sleeve.id, sleeveQty + 1)}
+                                className="px-2 py-1 text-[#4A4642] hover:text-[#1B1918] cursor-pointer"
+                                aria-label={`Increase ${sleeve.name} sleeves`}
+                              >
+                                <Plus className="w-3 h-3" />
+                              </button>
+                            </div>
+                          )}
+                          <span className="text-xs font-semibold text-[#1B1918] tabular-nums">
+                            {formatSgd(isSelected ? sleeve.priceSgd * sleeveQty : sleeve.priceSgd)}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Combined Selection Summary */}
+            <div className="pt-3 border-t border-[#F0EDE7] space-y-1.5 text-xs">
+              <div className="flex justify-between text-[#57524E]">
+                <span>
+                  {selectedVariant.label} (×{quantity})
+                </span>
+                <span className="tabular-nums font-medium text-[#1B1918]">
+                  {formatSgd(machineSubtotalSgd)}
+                </span>
+              </div>
+              {totalSleeveCount > 0 && (
+                <div className="flex justify-between text-[#57524E]">
+                  <span>
+                    Coffee Sleeves Add-On ({totalSleeveCount} sleeve{totalSleeveCount > 1 ? 's' : ''})
+                  </span>
+                  <span className="tabular-nums font-medium text-[#9E7B4F]">
+                    +{formatSgd(sleevesSubtotalSgd)}
+                  </span>
+                </div>
+              )}
+            </div>
+
             {/* Quantity Stepper + Primary Add to Bag CTA */}
             <div className="flex items-stretch gap-3 pt-1">
               <div
                 className="inline-flex items-center border border-[#DDD8D0] rounded-sm bg-[#FFFFFF]"
-                aria-label="Quantity selector"
+                aria-label="Machine bundle quantity selector"
               >
                 <button
                   type="button"
@@ -337,7 +509,9 @@ export function SwarovskiBundlePDP({
                   </>
                 ) : (
                   <span className="tabular-nums">
-                    ADD TO CART — {formatSgd(selectedVariant.priceSgd * quantity)}
+                    {totalSleeveCount > 0
+                      ? `ADD SET & SLEEVES — ${formatSgd(combinedTotalSgd)}`
+                      : `ADD TO CART — ${formatSgd(combinedTotalSgd)}`}
                   </span>
                 )}
               </button>
@@ -506,73 +680,15 @@ export function SwarovskiBundlePDP({
         </div>
       </section>
 
-      {/* Recommended Original Coffee Sleeves Pairing */}
-      <section className="max-w-[1320px] mx-auto px-4 sm:px-8 pt-4">
-        <div className="border-t border-[#E7E4DF] pt-12 space-y-8">
-          <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
-            <div className="space-y-1.5">
-              <div className="text-xs tracking-[0.14em] uppercase text-[#7A746E]">
-                Complete Your Tasting
-              </div>
-              <h2 className="font-serif text-2xl sm:text-3xl font-medium text-[#1B1918]">
-                Recommended Original Coffee Sleeves
-              </h2>
-            </div>
-            <span className="text-xs text-[#6B655F]">10 recyclable aluminium capsules per sleeve</span>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {PAIRING_SLEEVES.map((sleeve) => {
-              const isAdded = addedSleeveId === sleeve.id;
-              return (
-                <div
-                  key={sleeve.id}
-                  className="bg-[#FFFFFF] border border-[#E7E4DF] rounded-sm p-5 flex items-center justify-between gap-4"
-                >
-                  <div className="flex items-center gap-4 min-w-0">
-                    <div className="w-16 h-16 rounded-sm overflow-hidden bg-[#F2EFE9] shrink-0">
-                      <ResilientImage
-                        src={sleeve.image}
-                        alt={sleeve.name}
-                        className="w-full h-full object-cover"
-                        fallbackTitle={sleeve.name}
-                      />
-                    </div>
-                    <div className="min-w-0">
-                      <h3 className="text-sm font-semibold text-[#1B1918] truncate">
-                        {sleeve.name}
-                      </h3>
-                      <p className="text-xs text-[#6B655F] truncate mt-0.5">{sleeve.notes}</p>
-                      <div className="text-xs font-semibold text-[#1B1918] tabular-nums mt-1.5">
-                        {formatSgd(sleeve.priceSgd)}
-                      </div>
-                    </div>
-                  </div>
-
-                  <button
-                    type="button"
-                    onClick={() => handleAddSleeve(sleeve)}
-                    className={`px-3.5 py-2 text-xs font-semibold uppercase tracking-[0.12em] rounded-sm transition-colors shrink-0 cursor-pointer min-h-[38px] ${
-                      isAdded
-                        ? 'bg-[#2C4C3E] text-white'
-                        : 'bg-[#FAF9F6] border border-[#DDD8D0] hover:border-[#1B1918] text-[#1B1918]'
-                    }`}
-                  >
-                    {isAdded ? 'ADDED' : 'ADD TO CART'}
-                  </button>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      </section>
-
       {/* Mobile Sticky Bottom Buy Bar (<= 15% mobile viewport height) */}
       <div className="md:hidden fixed bottom-0 inset-x-0 z-30 bg-[#FFFFFF]/95 backdrop-blur-md border-t border-[#E7E4DF] px-4 py-3 flex items-center justify-between gap-4">
         <div className="min-w-0">
-          <div className="text-xs text-[#6B655F] truncate">{selectedVariant.label}</div>
+          <div className="text-xs text-[#6B655F] truncate">
+            {selectedVariant.label}
+            {totalSleeveCount > 0 ? ` + ${totalSleeveCount} sleeve${totalSleeveCount > 1 ? 's' : ''}` : ''}
+          </div>
           <div className="text-sm font-semibold text-[#1B1918] tabular-nums">
-            {formatSgd(selectedVariant.priceSgd * quantity)}
+            {formatSgd(combinedTotalSgd)}
           </div>
         </div>
         <button

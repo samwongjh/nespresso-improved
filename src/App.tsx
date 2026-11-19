@@ -92,6 +92,35 @@ export default function App() {
     setIsCartOpen(true);
   };
 
+  const handleAddManyToCart = (incomingItems: BagItem[]) => {
+    if (incomingItems.length === 0) return;
+
+    setCartItems((prev) => {
+      let next = [...prev];
+      for (const incoming of incomingItems) {
+        const existingIdx = next.findIndex((i) => i.id === incoming.id);
+        if (existingIdx >= 0) {
+          const existing = next[existingIdx];
+          next[existingIdx] = {
+            ...existing,
+            quantity: Math.min(10, existing.quantity + incoming.quantity),
+          };
+        } else {
+          next.push(incoming);
+        }
+      }
+      return next;
+    });
+
+    const machineItem = incomingItems.find(
+      (i) => i.itemType === 'machine' && (i.line === 'Original' || i.line === 'Vertuo')
+    );
+    if (machineItem && (machineItem.line === 'Original' || machineItem.line === 'Vertuo')) {
+      setHighlightedMachineLine(machineItem.line);
+    }
+    setIsCartOpen(true);
+  };
+
   const handleAddComparedMachineToCart = (machine: MachineComparisonSpec) => {
     handleAddToCart({
       id: machine.id,
@@ -153,6 +182,7 @@ export default function App() {
           <SwarovskiBundlePDP
             onBackToStorefront={() => navigateToHome('top', 'all')}
             onAddToBag={handleAddToCart}
+            onAddManyToBag={handleAddManyToCart}
           />
         )}
       </div>
