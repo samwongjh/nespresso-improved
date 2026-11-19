@@ -1,0 +1,6 @@
+{
+  "name": "Nespresso Singapore — Coffee Machines, Capsules & Swarovski Shine Bundle",
+  "description": "Nespresso Singapore digital flagship featuring Original and Vertuo coffee machines, Grand Cru capsules, and the limited-edition Nespresso x Swarovski Shine Bundle.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
